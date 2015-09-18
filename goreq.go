@@ -110,7 +110,7 @@ func (gr *GoReq) setDefaultClient() *GoReq {
 }
 
 // Clear GoReq data for another new request only keep client and logger.
-func (gr *GoReq) Reset() {
+func (gr *GoReq) Reset() *GoReq{
 	gr.Url = ""
 	gr.Method = ""
 	gr.Header = make(map[string]string)
@@ -123,6 +123,7 @@ func (gr *GoReq) Reset() {
 	gr.Errors = nil
 	gr.retry =  &RetryConfig{RetryCount:0, RetryTimeout:0, RetryOnHttpStatus:nil, }
 	gr.bindResponseBody = nil
+	return gr
 }
 
 //Set GET HttpMethod with a url.
@@ -282,7 +283,7 @@ var ShortContentTypes = map[string]string{
 //    goreq.New().
 //      Post("/recipe").
 //      ContentType("application/json").
-//      SendMapString(`{ name: "egg benedict", category: "brunch" }`).
+//      SendMapString(`{ "name": "egg benedict", "category": "brunch" }`).
 //      End()
 //
 // This will POST the body "name=egg benedict&category=brunch" to url /recipe
@@ -308,16 +309,16 @@ func (gr *GoReq) ContentType(typeStr string) *GoReq {
 //
 //      goreq.New().
 //        Get("/search").
-//        Query(`{ query: 'bicycle' }`).
-//        Query(`{ size: '50x50' }`).
-//        Query(`{ weight: '20kg' }`).
+//        Query(`{ "query": "bicycle" }`).
+//        Query(`{ "size": "50x50" }`).
+//        Query(`{ "weight": "20kg" }`).
 //        End()
 //
 // Or you can put multiple json values:
 //
 //      goreq.New().
 //        Get("/search").
-//        Query(`{ query: 'bicycle', size: '50x50', weight: '20kg' }`).
+//        Query(`{ "size": "50x50", "weight":"20kg" }`).
 //        End()
 //
 // Strings are also acceptable:
@@ -333,7 +334,7 @@ func (gr *GoReq) ContentType(typeStr string) *GoReq {
 //      goreq.New().
 //        Get("/search").
 //        Query("query=bicycle").
-//        Query(`{ size: '50x50', weight:'20kg' }`).
+//        Query(`{ "size": "50x50", "weight":"20kg" }`).
 //        End()
 //
 func (gr *GoReq) Query(content interface{}) *GoReq {
@@ -498,7 +499,7 @@ func (gr *GoReq) SendStruct(content interface{}) *GoReq {
 //
 //      goreq.New().
 //        Post("/search").
-//        SendMapString(`{ query: 'sushi' }`).
+//        SendMapString(`{ "query": "sushi" }`).
 //        End()
 //
 // Or a query string:
@@ -512,7 +513,7 @@ func (gr *GoReq) SendStruct(content interface{}) *GoReq {
 //      goreq.New().
 //        Post("/search").
 //        SendMapString("query=bicycle&size=50x50").
-//        SendMapString(`{ wheel: '4'}`).
+//        SendMapString(`{ "wheel": "4"}`).
 //        End()
 func (gr *GoReq) SendMapString(content string) *GoReq {
 	var val map[string]interface{}
@@ -523,7 +524,7 @@ func (gr *GoReq) SendMapString(content string) *GoReq {
 		for k, v := range val {
 			gr.Data[k] = v
 		}
-	} else if formVal, err := url.ParseQuery(content); err == nil {
+	} else if formVal, err2 := url.ParseQuery(content); err2 == nil {
 		for k, _ := range formVal {
 			// make it array if already have key
 			if val, ok := gr.Data[k]; ok {
@@ -556,6 +557,9 @@ func (gr *GoReq) SendMapString(content string) *GoReq {
 // SendRawString returns *GoReq's itself for any next chain and takes content string as a parameter.
 // Its duty is to transform String into gr.RawStringData and send raw string in request body.
 func (gr *GoReq) SendRawString(content string) *GoReq {
+	if 	gr.Header["Content-Type"] == "" {
+		gr.Header["Content-Type"] = "text/plain"
+	}
 	gr.RawStringData = content
 	return gr
 }
