@@ -321,8 +321,8 @@ func TestQueryFunc(t *testing.T) {
 	End()
 
 	qq := struct {
-		Query1 string
-		Query2 string
+		Query1 string `json:"query1"`
+		Query2 string `json:"query2"`
 	}{
 		Query1: "test1",
 		Query2: "test2",

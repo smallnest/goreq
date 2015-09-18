@@ -43,6 +43,7 @@ type GoReq struct {
 	FormData   url.Values
 	QueryData  url.Values
 	RawStringData  string
+	RawBytesData []byte
 	Client     *http.Client
 	CheckRedirect func(r *http.Request, v []*http.Request) error
 	Transport  *http.Transport
@@ -106,6 +107,8 @@ func (gr *GoReq) Reset() {
 	gr.Data = make(map[string]interface{})
 	gr.FormData = url.Values{}
 	gr.QueryData = url.Values{}
+	gr.RawStringData = ""
+	gr.RawBytesData = make([]byte, 0)
 	gr.Cookies = make([]*http.Cookie, 0)
 	gr.Errors = nil
 }
@@ -197,6 +200,7 @@ var ShortContentTypes = map[string]string{
 	"urlencoded": "application/x-www-form-urlencoded",
 	"form":       "application/x-www-form-urlencoded",
 	"form-data":  "application/x-www-form-urlencoded",
+	"stream":  "application/octet-stream",
 }
 
 // Type is a convenience function to specify the data type to send instead of SetHeader("Content-Type", "......").
@@ -215,7 +219,8 @@ var ShortContentTypes = map[string]string{
 //    "text" as "text/plain"
 //    "json" as "application/json" uses
 //    "xml" as "application/xml"
-//     "urlencoded", "form" or "form-data" as "application/x-www-form-urlencoded"
+//    "urlencoded", "form" or "form-data" as "application/x-www-form-urlencoded"
+//    "stream" as "application/octet-stream"
 //
 func (gr *GoReq) ContentType(typeStr string) *GoReq {
 	if (ShortContentTypes[typeStr] != "") {
@@ -279,7 +284,6 @@ func (gr *GoReq) queryStruct(content interface{}) *GoReq {
 			gr.Errors = append(gr.Errors, err)
 		} else {
 			for k, v := range val {
-				k = strings.ToLower(k)
 				gr.QueryData.Add(k, v.(string))
 			}
 		}
@@ -475,12 +479,21 @@ func (gr *GoReq) SendMapString(content string) *GoReq {
 }
 
 // SendRawString returns *GoReq's itself for any next chain and takes content string as a parameter.
-// Its duty is to transform String into gr.RawStringData..
+// Its duty is to transform String into gr.RawStringData and send raw string in request body.
 func (gr *GoReq) SendRawString(content string) *GoReq {
 	gr.RawStringData = content
 	return gr
 }
 
+// SendRawBytes returns *GoReq's itself for any next chain and takes content string as a parameter.
+// Its duty is to transform []byte into gr.RawBytesData and send raw bytes in request body.
+func (gr *GoReq) SendRawBytes(content []byte) *GoReq {
+	if 	gr.Header["Content-Type"] == "" {
+		gr.Header["Content-Type"] = "application/octet-stream"
+	}
+	gr.RawBytesData = content
+	return gr
+}
 
 func changeMapToURLValues(data map[string]interface{}) url.Values {
 	var newUrlValues = url.Values{}
@@ -557,14 +570,16 @@ func (gr *GoReq) EndBytes(callback ...func(response Response, body []byte, errs 
 
 	switch gr.Method {
 	case POST, PUT, PATCH:
-		if gr.Header["Content-Type"] == "application/json" && len(gr.Data) > 0{
+		if gr.Header["Content-Type"] == "application/json" && len(gr.Data) > 0{ //json
 			contentJson, _ := json.Marshal(gr.Data)
 			contentReader := bytes.NewReader(contentJson)
 			req, err = http.NewRequest(gr.Method, gr.Url, contentReader)
-		} else if gr.Header["Content-Type"] == "application/x-www-form-urlencoded" {
+		} else if gr.Header["Content-Type"] == "application/x-www-form-urlencoded" { //form
 			formData := changeMapToURLValues(gr.Data)
 			req, err = http.NewRequest(gr.Method, gr.Url, strings.NewReader(formData.Encode()))
-		} else {
+		} else if len(gr.RawBytesData) > 0 { //raw bytes
+			req, err = http.NewRequest(gr.Method, gr.Url, bytes.NewReader(gr.RawBytesData))
+		} else { //raw string
 			req, err = http.NewRequest(gr.Method, gr.Url, strings.NewReader(gr.RawStringData))
 		}
 	case GET, HEAD, DELETE:
