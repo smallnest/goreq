@@ -52,8 +52,14 @@ type GoReq struct {
 	BasicAuth  struct{ Username, Password string }
 	Debug      bool
 	logger     *log.Logger
+	retry *RetryConfig
 }
 
+type RetryConfig struct {
+	RetryCount int
+	RetryTimeout int
+	RetryOnHttpStatus []int
+}
 // Used to create a new GoReq object.
 func New() *GoReq {
 	gr := &GoReq{
@@ -68,6 +74,7 @@ func New() *GoReq {
 		BasicAuth:  struct{ Username, Password string }{},
 		Debug:      false,
 		logger:     log.New(os.Stderr, "[goreq]", log.LstdFlags),
+		retry:      &RetryConfig{RetryCount:0, RetryTimeout:0, RetryOnHttpStatus:nil, },
 	}
 	return gr
 }
@@ -111,6 +118,7 @@ func (gr *GoReq) Reset() {
 	gr.RawBytesData = make([]byte, 0)
 	gr.Cookies = make([]*http.Cookie, 0)
 	gr.Errors = nil
+	gr.retry =  &RetryConfig{RetryCount:0, RetryTimeout:0, RetryOnHttpStatus:nil, }
 }
 
 func (gr *GoReq) Get(targetUrl string) *GoReq {
@@ -672,7 +680,7 @@ func (gr *GoReq) EndBytes(callback ...func(response Response, body []byte, errs 
 	}
 
 	// Send request
-	resp, err = gr.Client.Do(req)
+	resp, err = gr.retryDo(req, gr.retry.RetryCount)
 
 	// Log details of this response
 	if gr.Debug {
@@ -698,4 +706,50 @@ func (gr *GoReq) EndBytes(callback ...func(response Response, body []byte, errs 
 		callback[0](&respCallback, body, gr.Errors)
 	}
 	return resp, body, nil
+}
+
+// GoReq retries to send requests if servers return unexpected status.
+// So GoReq tries at most retryCount + 1 times and request interval is retryTimeout.
+// You can indicate which status GoReq should retry in case of. If it is nil, retry only when status code >= 400
+//
+// For example:
+//    _, _, err := New().Get("http://example.com/a-wrong-url").
+//    Retry(3, 100, nil).
+//    End()
+//
+func (gr *GoReq) Retry(retryCount int, retryTimeout int, retryOnHttpStatus []int) *GoReq{
+	gr.retry = &RetryConfig{RetryCount: retryCount, RetryTimeout:retryTimeout, RetryOnHttpStatus:retryOnHttpStatus}
+	return gr
+}
+
+func (gr *GoReq) retryDo(req  *http.Request, retryCount int) (resp Response, err  error) {
+	r, err := gr.Client.Do(req)
+
+	if retryCount == 0 {
+		resp = r
+		return
+	}
+
+	if gr.retry.RetryOnHttpStatus == nil {
+		if r.StatusCode >= 200 {
+			resp = r
+			return
+		} else {
+			resp, err = gr.retryDo(req, retryCount-1)
+		}
+	} else {
+		for _, s := range gr.retry.RetryOnHttpStatus {
+			if r.StatusCode == s {
+				if gr.retry.RetryTimeout > 0 {
+					time.Sleep(time.Duration(gr.retry.RetryTimeout) * time.Second)
+				}
+				resp, err = gr.retryDo(req, retryCount-1)
+				return
+			}
+		}
+		// none of the statuses for which we want to retry - pass the response on as is
+		resp = r
+	}
+
+	return
 }

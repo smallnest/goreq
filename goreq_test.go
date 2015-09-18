@@ -685,3 +685,36 @@ func TestClient(t *testing.T) {
 	SetClient(client).
 	End()
 }
+
+func TestRetry(t *testing.T) {
+	count := 4
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if count > 1 {
+			w.WriteHeader(500)
+
+		} else {
+			w.WriteHeader(200)
+			w.Write([]byte("Just some text"))
+		}
+		count = count - 1
+	}))
+	defer ts.Close()
+
+	_, _, err := New().Get(ts.URL).
+	Retry(3, 100, nil).
+	End()
+
+	if err != nil {
+		t.Error("failed to retry")
+	}
+
+	resp, _, err := New().Get("http://example.com/wrong-url").
+	Retry(3, 100, nil).
+	End()
+
+	println(resp.Status)
+	if resp.StatusCode != 404 {
+		t.Error("Expected 404 Not Found")
+	}
+}
