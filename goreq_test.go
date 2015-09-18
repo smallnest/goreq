@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/elazarl/goproxy"
+	"encoding/json"
 )
 
 // testing for Get method
@@ -713,8 +714,32 @@ func TestRetry(t *testing.T) {
 	Retry(3, 100, nil).
 	End()
 
-	println(resp.Status)
 	if resp.StatusCode != 404 {
 		t.Error("Expected 404 Not Found")
+	}
+}
+
+func TestBindBody(t *testing.T) {
+	type Person struct {
+		Name string
+	}
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		bytes, _ := json.Marshal(Person{"Jerry"})
+		w.Write(bytes)
+	}))
+	defer ts.Close()
+
+	var friend Person
+	_, _, err := New().Get(ts.URL).
+	BindBody(&friend).
+	End()
+
+	if err != nil {
+		t.Error("failed to get body")
+	}
+
+	if friend.Name != "Jerry" {
+		t.Error("failed to bind response body")
 	}
 }

@@ -53,6 +53,7 @@ type GoReq struct {
 	Debug      bool
 	logger     *log.Logger
 	retry *RetryConfig
+	bindResponseBody interface{}
 }
 
 type RetryConfig struct {
@@ -75,6 +76,7 @@ func New() *GoReq {
 		Debug:      false,
 		logger:     log.New(os.Stderr, "[goreq]", log.LstdFlags),
 		retry:      &RetryConfig{RetryCount:0, RetryTimeout:0, RetryOnHttpStatus:nil, },
+		bindResponseBody: nil,
 	}
 	return gr
 }
@@ -119,6 +121,7 @@ func (gr *GoReq) Reset() {
 	gr.Cookies = make([]*http.Cookie, 0)
 	gr.Errors = nil
 	gr.retry =  &RetryConfig{RetryCount:0, RetryTimeout:0, RetryOnHttpStatus:nil, }
+	gr.bindResponseBody = nil
 }
 
 func (gr *GoReq) Get(targetUrl string) *GoReq {
@@ -566,6 +569,21 @@ func changeMapToURLValues(data map[string]interface{}) url.Values {
 	return newUrlValues
 }
 
+// BindBody
+//
+// For example:
+//    type Person struct {
+//        Name string
+//    }
+//
+//    var friend Person
+//    response, _, errs := request.Post("http://example.com").BindBody(&friend).End()
+
+func (gr *GoReq) BindBody(bindResponseBody interface{}) *GoReq {
+	gr.bindResponseBody = bindResponseBody
+	return gr
+}
+
 // End is the most important function that you need to call when ending the chain. The request won't proceed without calling it.
 // End function returns Response which matchs the structure of Response type in Golang's http package (but without Body data). The body data itself returns as a string in a 2nd return value.
 // Lastly but worth noticing, error array (NOTE: not just single error value) is returned as a 3rd value and nil otherwise.
@@ -598,6 +616,9 @@ func (gr *GoReq) End(callback ...func(response Response, body string, errs []err
 		}
 	}
 	resp, body, errs := gr.EndBytes(bytesCallback...)
+	if gr.bindResponseBody != nil {
+		json.Unmarshal(body, gr.bindResponseBody)
+	}
 	bodyString := string(body)
 	return resp, bodyString, errs
 }
