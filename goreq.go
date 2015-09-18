@@ -167,6 +167,48 @@ func (gr *GoReq) SetHeader(param string, value string) *GoReq {
 	return gr
 }
 
+//set headers with multiple fields.
+//it accepts structs or json strings:
+//
+func (gr *GoReq) SetHeaders(headers interface{}) *GoReq {
+	switch v := reflect.ValueOf(headers); v.Kind() {
+	case reflect.String:
+		gr.setJsonHeaders(v.String())
+	case reflect.Struct:
+		gr.setStructHeaders(v.Interface())
+	default:
+	}
+	return gr
+}
+
+func (gr *GoReq) setStructHeaders(headers interface{}) *GoReq {
+	if marshalContent, err := json.Marshal(headers); err != nil {
+		gr.Errors = append(gr.Errors, err)
+	} else {
+		var val map[string]string
+		if err := json.Unmarshal(marshalContent, &val); err != nil {
+			gr.Errors = append(gr.Errors, err)
+		} else {
+			for k, v := range val {
+				gr.Header[k] = v
+			}
+		}
+	}
+	return gr
+}
+
+func (gr *GoReq) setJsonHeaders(headers string) *GoReq {
+	var val map[string]string
+	if err := json.Unmarshal([]byte(headers), &val); err == nil {
+		for k, v := range val {
+			gr.Header[k] = v
+		}
+	} else {
+		gr.Errors = append(gr.Errors, err)
+	}
+	return gr
+}
+
 // SetBasicAuth sets the basic authentication header
 // Example. To set the header for username "myuser" and password "mypass"
 //

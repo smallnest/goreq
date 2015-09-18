@@ -303,6 +303,28 @@ func checkQuery(t *testing.T, q map[string][]string, key string, want string) {
 	return
 }
 
+func TestSetHeader(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header == nil {
+			t.Errorf("Expected non-nil request Header")
+		}
+
+		if r.Header.Get("Content-Type") != "text/plain" {
+			t.Error("Header has not set")
+		}
+
+		if r.Header.Get("X-Test-Tag") != "test" {
+			t.Error("Header has not set")
+		}
+	}))
+	defer ts.Close()
+
+	New().Get(ts.URL).
+	SetHeader("Content-Type", "text/plain").
+	SetHeader("X-Test-Tag", "test").
+	End()
+}
+
 // TODO: more check on url query (all testcases)
 func TestQueryFunc(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
