@@ -324,6 +324,19 @@ func TestSetHeader(t *testing.T) {
 	SetHeader("Content-Type", "text/plain").
 	SetHeader("X-Test-Tag", "test").
 	End()
+
+	New().Get(ts.URL).
+	SetHeaders(`{'Content-Type' = 'text/plain','X-Test-Tag'='test'}`).
+	End()
+
+	headers := struct {
+		ContentType string `json:"Content-Type"`
+		XTestTag string `json:"X-Test-Tag"`
+	} {ContentType:"text/plain",XTestTag:"test"}
+
+	New().Get(ts.URL).
+	SetHeaders(headers).
+	End()
 }
 
 // TODO: more check on url query (all testcases)

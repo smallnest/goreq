@@ -87,12 +87,13 @@ func (gr *GoReq) SetDebug(enable bool) *GoReq {
 	return gr
 }
 
+// Set a Logger
 func (gr *GoReq) SetLogger(logger *log.Logger) *GoReq {
 	gr.logger = logger
 	return gr
 }
 
-
+// Set a shared http.Client
 func (gr *GoReq) SetClient(client  *http.Client) *GoReq {
 	gr.Client = client
 	return gr
@@ -108,7 +109,7 @@ func (gr *GoReq) setDefaultClient() *GoReq {
 	return gr
 }
 
-// Clear GoReq data for another new request.
+// Clear GoReq data for another new request only keep client and logger.
 func (gr *GoReq) Reset() {
 	gr.Url = ""
 	gr.Method = ""
@@ -124,6 +125,7 @@ func (gr *GoReq) Reset() {
 	gr.bindResponseBody = nil
 }
 
+//Set GET HttpMethod with a url.
 func (gr *GoReq) Get(targetUrl string) *GoReq {
 	gr.Method = GET
 	gr.Url = targetUrl
@@ -131,6 +133,7 @@ func (gr *GoReq) Get(targetUrl string) *GoReq {
 	return gr
 }
 
+//Set POST HttpMethod with a url.
 func (gr *GoReq) Post(targetUrl string) *GoReq {
 	gr.Method = POST
 	gr.Url = targetUrl
@@ -138,6 +141,7 @@ func (gr *GoReq) Post(targetUrl string) *GoReq {
 	return gr
 }
 
+//Set HEAD HttpMethod with a url.
 func (gr *GoReq) Head(targetUrl string) *GoReq {
 	gr.Method = HEAD
 	gr.Url = targetUrl
@@ -145,6 +149,7 @@ func (gr *GoReq) Head(targetUrl string) *GoReq {
 	return gr
 }
 
+//Set PUT HttpMethod with a url.
 func (gr *GoReq) Put(targetUrl string) *GoReq {
 	gr.Method = PUT
 	gr.Url = targetUrl
@@ -152,6 +157,7 @@ func (gr *GoReq) Put(targetUrl string) *GoReq {
 	return gr
 }
 
+//Set DELETE HttpMethod with a url.
 func (gr *GoReq) Delete(targetUrl string) *GoReq {
 	gr.Method = DELETE
 	gr.Url = targetUrl
@@ -159,6 +165,7 @@ func (gr *GoReq) Delete(targetUrl string) *GoReq {
 	return gr
 }
 
+//Set PATCH HttpMethod with a url.
 func (gr *GoReq) Patch(targetUrl string) *GoReq {
 	gr.Method = PATCH
 	gr.Url = targetUrl
@@ -178,8 +185,21 @@ func (gr *GoReq) SetHeader(param string, value string) *GoReq {
 	return gr
 }
 
-//set headers with multiple fields.
+//Set headers with multiple fields.
 //it accepts structs or json strings:
+// for example:
+//    New().Get(ts.URL).
+//    SetHeaders(`{'Content-Type' = 'text/plain','X-Test-Tag'='test'}`).
+//    End()
+//or
+//    headers := struct {
+//        ContentType string `json:"Content-Type"`
+//        XTestTag string `json:"X-Test-Tag"`
+//    } {ContentType:"text/plain",XTestTag:"test"}
+//
+//    New().Get(ts.URL).
+//    SetHeaders(headers).
+//    End()
 //
 func (gr *GoReq) SetHeaders(headers interface{}) *GoReq {
 	switch v := reflect.ValueOf(headers); v.Kind() {
@@ -253,7 +273,7 @@ var ShortContentTypes = map[string]string{
 	"urlencoded": "application/x-www-form-urlencoded",
 	"form":       "application/x-www-form-urlencoded",
 	"form-data":  "application/x-www-form-urlencoded",
-	"stream":  "application/octet-stream",
+	"stream":     "application/octet-stream",
 }
 
 // Type is a convenience function to specify the data type to send instead of SetHeader("Content-Type", "......").
@@ -370,6 +390,7 @@ func (gr *GoReq) Param(key string, value string) *GoReq {
 	return gr
 }
 
+//Set timeout for connections.
 func (gr *GoReq) Timeout(timeout time.Duration) *GoReq {
 	gr.Transport.Dial = func(network, addr string) (net.Conn, error) {
 		conn, err := net.DialTimeout(network, addr, timeout)
@@ -423,6 +444,7 @@ func (gr *GoReq) Proxy(proxyUrl string) *GoReq {
 	return gr
 }
 
+// Set redirect policy.
 func (gr *GoReq) RedirectPolicy(policy func(req Request, via []Request) error) *GoReq {
 	gr.CheckRedirect = func(r *http.Request, v []*http.Request) error {
 		vv := make([]Request, len(v))
@@ -578,7 +600,7 @@ func changeMapToURLValues(data map[string]interface{}) url.Values {
 //
 //    var friend Person
 //    response, _, errs := request.Post("http://example.com").BindBody(&friend).End()
-
+//
 func (gr *GoReq) BindBody(bindResponseBody interface{}) *GoReq {
 	gr.bindResponseBody = bindResponseBody
 	return gr
@@ -771,6 +793,5 @@ func (gr *GoReq) retryDo(req  *http.Request, retryCount int) (resp Response, err
 		// none of the statuses for which we want to retry - pass the response on as is
 		resp = r
 	}
-
 	return
 }
