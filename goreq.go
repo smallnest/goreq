@@ -591,7 +591,7 @@ func changeMapToURLValues(data map[string]interface{}) url.Values {
 	return newUrlValues
 }
 
-// BindBody
+// BindBody set bind object for response.
 //
 // For example:
 //    type Person struct {
