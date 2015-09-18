@@ -26,14 +26,13 @@ func ExampleSetClient() {
 	fmt.Println(resp.StatusCode == 200)
 	fmt.Println(len(err) == 0)
 	fmt.Println(body != "")
-
 	// Output:
 	// true
 	// true
 	// true
 }
 
-func ExampleReset() {
+func ExampleGoReq_Reset() {
 
 	gr := goreq.New()
 	gr.Get("http://httpbin.org/get").
@@ -45,7 +44,6 @@ func ExampleReset() {
 	fmt.Println(resp.StatusCode == 200)
 	fmt.Println(len(err) == 0)
 	fmt.Println(body != "")
-
 	// Output:
 	// true
 	// true
