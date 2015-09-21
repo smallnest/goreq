@@ -17,6 +17,10 @@ You can see the release notes for details.
 $ go get github.com/smallnest/goreq
 ```
 
+## Status
+[![Drone Build Status](https://drone.io/github.com/smallnest/goreq/status.png)](https://drone.io/github.com/smallnest/goreq/latest)
+
+
 ## Usage
 ### why you should use goreq
 [goreq](time.Now().Add(timeout)) comes from [gorequest]() but it added some new features and fixed some bugs. 
