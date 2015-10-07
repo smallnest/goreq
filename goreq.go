@@ -683,38 +683,7 @@ func (gr *GoReq) EndBytes(callback ...func(response Response, body []byte, errs 
 		req, err = http.NewRequest(gr.Method, gr.Url, nil)
 	}
 
-	for k, v := range gr.Header {
-		req.Header.Set(k, v)
-	}
-	// Add all querystring from Query func
-	q := req.URL.Query()
-	for k, v := range gr.QueryData {
-		for _, vv := range v {
-			q.Add(k, vv)
-		}
-	}
-	req.URL.RawQuery = q.Encode()
-
-	// Add basic auth
-	if gr.BasicAuth != (struct{ Username, Password string }{}) {
-		req.SetBasicAuth(gr.BasicAuth.Username, gr.BasicAuth.Password)
-	}
-
-	// Add cookies
-	for _, cookie := range gr.Cookies {
-		req.AddCookie(cookie)
-	}
-
-	//check client
-	if gr.Client == nil {
-		gr.setDefaultClient()
-	}
-	if gr.CheckRedirect != nil {
-		gr.Client.CheckRedirect = gr.CheckRedirect
-	}
-
-	// Set Transport
-	gr.Client.Transport = gr.Transport
+	initRequest(req, gr)
 
 	// Log details of this request
 	if gr.Debug {
@@ -753,6 +722,41 @@ func (gr *GoReq) EndBytes(callback ...func(response Response, body []byte, errs 
 		callback[0](&respCallback, body, gr.Errors)
 	}
 	return resp, body, nil
+}
+
+func initRequest(req  *http.Request, gr *GoReq) {
+	for k, v := range gr.Header {
+		req.Header.Set(k, v)
+	}
+	// Add all querystring from Query func
+	q := req.URL.Query()
+	for k, v := range gr.QueryData {
+		for _, vv := range v {
+			q.Add(k, vv)
+		}
+	}
+	req.URL.RawQuery = q.Encode()
+
+	// Add basic auth
+	if gr.BasicAuth != (struct{ Username, Password string }{}) {
+		req.SetBasicAuth(gr.BasicAuth.Username, gr.BasicAuth.Password)
+	}
+
+	// Add cookies
+	for _, cookie := range gr.Cookies {
+		req.AddCookie(cookie)
+	}
+
+	//check client
+	if gr.Client == nil {
+		gr.setDefaultClient()
+	}
+	if gr.CheckRedirect != nil {
+		gr.Client.CheckRedirect = gr.CheckRedirect
+	}
+
+	// Set Transport
+	gr.Client.Transport = gr.Transport
 }
 
 // GoReq retries to send requests if servers return unexpected status.
