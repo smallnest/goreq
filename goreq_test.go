@@ -43,10 +43,10 @@ func TestGet(t *testing.T) {
 
 	defer ts.Close()
 
-	New().Get(ts.URL + case1_empty).
+	New().Get(ts.URL + case1Empty).
 		End()
 
-	New().Get(ts.URL+case2_set_header).
+	New().Get(ts.URL+case2SetHeader).
 		SetHeader("API-Key", "fookey").
 		End()
 }
