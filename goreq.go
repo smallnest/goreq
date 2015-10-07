@@ -135,49 +135,49 @@ func (gr *GoReq) Reset() *GoReq {
 }
 
 // Get is used to set GET HttpMethod with a url.
-func (gr *GoReq) Get(targetUrl string) *GoReq {
+func (gr *GoReq) Get(targetURL string) *GoReq {
 	gr.Method = GET
-	gr.URL = targetUrl
+	gr.URL = targetURL
 	gr.Errors = nil
 	return gr
 }
 
 // Post is used to set POST HttpMethod with a url.
-func (gr *GoReq) Post(targetUrl string) *GoReq {
+func (gr *GoReq) Post(targetURL string) *GoReq {
 	gr.Method = POST
-	gr.URL = targetUrl
+	gr.URL = targetURL
 	gr.Errors = nil
 	return gr
 }
 
 // Head is used to set HEAD HttpMethod with a url.
-func (gr *GoReq) Head(targetUrl string) *GoReq {
+func (gr *GoReq) Head(targetURL string) *GoReq {
 	gr.Method = HEAD
-	gr.URL = targetUrl
+	gr.URL = targetURL
 	gr.Errors = nil
 	return gr
 }
 
 // Put is used to set PUT HttpMethod with a url.
-func (gr *GoReq) Put(targetUrl string) *GoReq {
+func (gr *GoReq) Put(targetURL string) *GoReq {
 	gr.Method = PUT
-	gr.URL = targetUrl
+	gr.URL = targetURL
 	gr.Errors = nil
 	return gr
 }
 
 // Delete is used to set DELETE HttpMethod with a url.
-func (gr *GoReq) Delete(targetUrl string) *GoReq {
+func (gr *GoReq) Delete(targetURL string) *GoReq {
 	gr.Method = DELETE
-	gr.URL = targetUrl
+	gr.URL = targetURL
 	gr.Errors = nil
 	return gr
 }
 
 // Patch is used to set PATCH HttpMethod with a url.
-func (gr *GoReq) Patch(targetUrl string) *GoReq {
+func (gr *GoReq) Patch(targetURL string) *GoReq {
 	gr.Method = PATCH
-	gr.URL = targetUrl
+	gr.URL = targetURL
 	gr.Errors = nil
 	return gr
 }
@@ -441,14 +441,14 @@ func (gr *GoReq) TLSClientConfig(config *tls.Config) *GoReq {
 //        Post("http://www.google.com").
 //        End()
 //
-func (gr *GoReq) Proxy(proxyUrl string) *GoReq {
-	parsedProxyUrl, err := url.Parse(proxyUrl)
+func (gr *GoReq) Proxy(proxyURL string) *GoReq {
+	parsedProxyURL, err := url.Parse(proxyURL)
 	if err != nil {
 		gr.Errors = append(gr.Errors, err)
-	} else if proxyUrl == "" {
+	} else if proxyURL == "" {
 		gr.Transport.Proxy = nil
 	} else {
-		gr.Transport.Proxy = http.ProxyURL(parsedProxyUrl)
+		gr.Transport.Proxy = http.ProxyURL(parsedProxyURL)
 	}
 	return gr
 }
@@ -499,7 +499,7 @@ func (gr *GoReq) SendStruct(content interface{}) *GoReq {
 	return gr
 }
 
-// SendString returns *GoReq's itself for any next chain and takes content string as a parameter.
+// SendMapString returns *GoReq's itself for any next chain and takes content string as a parameter.
 // Its duty is to transform json String or query Strings into s.Data (map[string]interface{}) which later changes into appropriate format such as json, form, text, etc. in the End func.
 // SendMapString function accepts either json string or other strings which is usually used to assign data to POST or PUT method.
 // you can pass a json string:
@@ -582,24 +582,24 @@ func (gr *GoReq) SendRawBytes(content []byte) *GoReq {
 }
 
 func changeMapToURLValues(data map[string]interface{}) url.Values {
-	var newUrlValues = url.Values{}
+	var newURLValues = url.Values{}
 	for k, v := range data {
 		switch val := v.(type) {
 		case string:
-			newUrlValues.Add(k, val)
+			newURLValues.Add(k, val)
 		case []string:
 			for _, element := range val {
-				newUrlValues.Add(k, element)
+				newURLValues.Add(k, element)
 			}
 		// if a number, change to string
 		// json.Number used to protect against a wrong (for GoReq) default conversion
 		// which always converts number to float64.
 		// This type is caused by using Decoder.UseNumber()
 		case json.Number:
-			newUrlValues.Add(k, string(val))
+			newURLValues.Add(k, string(val))
 		}
 	}
-	return newUrlValues
+	return newURLValues
 }
 
 // BindBody set bind object for response.
@@ -675,8 +675,8 @@ func (gr *GoReq) EndBytes(callback ...func(response Response, body []byte, errs 
 	switch gr.Method {
 	case POST, PUT, PATCH:
 		if gr.Header["Content-Type"] == "application/json" && len(gr.Data) > 0 { //json
-			contentJson, _ := json.Marshal(gr.Data)
-			contentReader := bytes.NewReader(contentJson)
+			contentJSON, _ := json.Marshal(gr.Data)
+			contentReader := bytes.NewReader(contentJSON)
 			req, err = http.NewRequest(gr.Method, gr.URL, contentReader)
 		} else if gr.Header["Content-Type"] == "application/x-www-form-urlencoded" { //form
 			formData := changeMapToURLValues(gr.Data)
@@ -766,7 +766,7 @@ func initRequest(req *http.Request, gr *GoReq) {
 	gr.Client.Transport = gr.Transport
 }
 
-// GoReq retries to send requests if servers return unexpected status.
+// Retry is used to retry to send requests if servers return unexpected status.
 // So GoReq tries at most retryCount + 1 times and request interval is retryTimeout.
 // You can indicate which status GoReq should retry in case of. If it is nil, retry only when status code >= 400
 //
@@ -775,8 +775,8 @@ func initRequest(req *http.Request, gr *GoReq) {
 //    Retry(3, 100, nil).
 //    End()
 //
-func (gr *GoReq) Retry(retryCount int, retryTimeout int, retryOnHttpStatus []int) *GoReq {
-	gr.retry = &RetryConfig{RetryCount: retryCount, RetryTimeout: retryTimeout, RetryOnHTTPStatus: retryOnHttpStatus}
+func (gr *GoReq) Retry(retryCount int, retryTimeout int, retryOnHTTPStatus []int) *GoReq {
+	gr.retry = &RetryConfig{RetryCount: retryCount, RetryTimeout: retryTimeout, RetryOnHTTPStatus: retryOnHTTPStatus}
 	return gr
 }
 
@@ -792,9 +792,9 @@ func (gr *GoReq) retryDo(req *http.Request, retryCount int) (resp Response, err 
 		if r.StatusCode >= 200 {
 			resp = r
 			return
-		} else {
-			resp, err = gr.retryDo(req, retryCount-1)
 		}
+		
+		resp, err = gr.retryDo(req, retryCount-1)
 	} else {
 		for _, s := range gr.retry.RetryOnHTTPStatus {
 			if r.StatusCode == s {
