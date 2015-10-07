@@ -90,16 +90,16 @@ func TestParam(t *testing.T) {
 
 // testing for POST method
 func TestPost(t *testing.T) {
-	const case1_empty = "/"
-	const case2_set_header = "/set_header"
-	const case3_send_json = "/send_json"
-	const case4_send_string = "/send_string"
-	const case5_integration_send_json_string = "/integration_send_json_string"
-	const case6_set_query = "/set_query"
-	const case7_integration_send_json_struct = "/integration_send_json_struct"
+	const case1Empty = "/"
+	const case2SetHeader = "/set_header"
+	const case3SendJSON = "/send_json"
+	const case4SendString = "/send_string"
+	const case5IntegrationSendJSONString = "/integration_send_json_string"
+	const case6SetQuery = "/set_query"
+	const case7IntegrationSendJSONStruct = "/integration_send_json_struct"
 	// Check that the number conversion should be converted as string not float64
-	const case8_send_json_with_long_id_number = "/send_json_with_long_id_number"
-	const case9_send_json_string_with_long_id_number_as_form_result = "/send_json_string_with_long_id_number_as_form_result"
+	const case8SendJSONWithLongIDNumber = "/send_json_with_long_id_number"
+	const case9SendJSONStringWithLongIDNumberAsFormResult = "/send_json_string_with_long_id_number_as_form_result"
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// check method is PATCH before going to check other features
 		if r.Method != POST {
@@ -111,22 +111,22 @@ func TestPost(t *testing.T) {
 		switch r.URL.Path {
 		default:
 			t.Errorf("No testing for this case yet : %q", r.URL.Path)
-		case case1_empty:
-			t.Logf("case %v ", case1_empty)
-		case case2_set_header:
-			t.Logf("case %v ", case2_set_header)
+		case case1Empty:
+			t.Logf("case %v ", case1Empty)
+		case case2SetHeader:
+			t.Logf("case %v ", case2SetHeader)
 			if r.Header.Get("API-Key") != "fookey" {
 				t.Errorf("Expected 'API-Key' == %q; got %q", "fookey", r.Header.Get("API-Key"))
 			}
-		case case3_send_json:
-			t.Logf("case %v ", case3_send_json)
+		case case3SendJSON:
+			t.Logf("case %v ", case3SendJSON)
 			defer r.Body.Close()
 			body, _ := ioutil.ReadAll(r.Body)
 			if string(body) != `{"query1":"test","query2":"test"}` {
 				t.Error(`Expected Body with {"query1":"test","query2":"test"}`, "| but got", string(body))
 			}
-		case case4_send_string:
-			t.Logf("case %v ", case4_send_string)
+		case case4SendString:
+			t.Logf("case %v ", case4SendString)
 			if r.Header.Get("Content-Type") != "application/x-www-form-urlencoded" {
 				t.Error("Expected Header Content-Type -> application/x-www-form-urlencoded", "| but got", r.Header.Get("Content-Type"))
 			}
@@ -135,15 +135,15 @@ func TestPost(t *testing.T) {
 			if string(body) != "query1=test&query2=test" {
 				t.Error("Expected Body with \"query1=test&query2=test\"", "| but got", string(body))
 			}
-		case case5_integration_send_json_string:
-			t.Logf("case %v ", case5_integration_send_json_string)
+		case case5IntegrationSendJSONString:
+			t.Logf("case %v ", case5IntegrationSendJSONString)
 			defer r.Body.Close()
 			body, _ := ioutil.ReadAll(r.Body)
 			if string(body) != "query1=test&query2=test" {
 				t.Error("Expected Body with \"query1=test&query2=test\"", "| but got", string(body))
 			}
-		case case6_set_query:
-			t.Logf("case %v ", case6_set_query)
+		case case6SetQuery:
+			t.Logf("case %v ", case6SetQuery)
 			v := r.URL.Query()
 			if v["query1"][0] != "test" {
 				t.Error("Expected query1:test", "| but got", v["query1"][0])
@@ -151,23 +151,23 @@ func TestPost(t *testing.T) {
 			if v["query2"][0] != "test" {
 				t.Error("Expected query2:test", "| but got", v["query2"][0])
 			}
-		case case7_integration_send_json_struct:
-			t.Logf("case %v ", case7_integration_send_json_struct)
+		case case7IntegrationSendJSONStruct:
+			t.Logf("case %v ", case7IntegrationSendJSONStruct)
 			defer r.Body.Close()
 			body, _ := ioutil.ReadAll(r.Body)
 			comparedBody := []byte(`{"Lower":{"Color":"green","Size":1.7},"Upper":{"Color":"red","Size":0},"a":"a","name":"Cindy"}`)
 			if !bytes.Equal(body, comparedBody) {
 				t.Errorf(`Expected correct json but got ` + string(body))
 			}
-		case case8_send_json_with_long_id_number:
-			t.Logf("case %v ", case8_send_json_with_long_id_number)
+		case case8SendJSONWithLongIDNumber:
+			t.Logf("case %v ", case8SendJSONWithLongIDNumber)
 			defer r.Body.Close()
 			body, _ := ioutil.ReadAll(r.Body)
 			if string(body) != `{"id":123456789,"name":"nemo"}` {
 				t.Error(`Expected Body with {"id":123456789,"name":"nemo"}`, "| but got", string(body))
 			}
-		case case9_send_json_string_with_long_id_number_as_form_result:
-			t.Logf("case %v ", case9_send_json_string_with_long_id_number_as_form_result)
+		case case9SendJSONStringWithLongIDNumberAsFormResult:
+			t.Logf("case %v ", case9SendJSONStringWithLongIDNumberAsFormResult)
 			defer r.Body.Close()
 			body, _ := ioutil.ReadAll(r.Body)
 			if string(body) != `id=123456789&name=nemo` {
@@ -178,24 +178,24 @@ func TestPost(t *testing.T) {
 
 	defer ts.Close()
 
-	New().Post(ts.URL + case1_empty).
+	New().Post(ts.URL + case1Empty).
 		End()
 
-	New().Post(ts.URL+case2_set_header).
+	New().Post(ts.URL+case2SetHeader).
 		SetHeader("API-Key", "fookey").
 		End()
 
-	New().Post(ts.URL + case3_send_json).
+	New().Post(ts.URL + case3SendJSON).
 		SendMapString(`{"query1":"test"}`).
 		SendMapString(`{"query2":"test"}`).
 		End()
 
-	New().Post(ts.URL + case4_send_string).
+	New().Post(ts.URL + case4SendString).
 		SendMapString("query1=test").
 		SendMapString("query2=test").
 		End()
 
-	New().Post(ts.URL + case5_integration_send_json_string).
+	New().Post(ts.URL + case5IntegrationSendJSONString).
 		SendMapString("query1=test").
 		SendMapString(`{"query2":"test"}`).
 		End()
@@ -203,7 +203,7 @@ func TestPost(t *testing.T) {
 	/* TODO: More testing post for application/x-www-form-urlencoded
 	   post.query(json), post.query(string), post.send(json), post.send(string), post.query(both).send(both)
 	*/
-	New().Post(ts.URL + case6_set_query).
+	New().Post(ts.URL + case6SetQuery).
 		Query("query1=test").
 		Query("query2=test").
 		End()
@@ -229,16 +229,16 @@ func TestPost(t *testing.T) {
 		Name  string `json:"name"`
 	}
 	myStyle := Style{Upper: Upper{Color: "red"}, Name: "Cindy", Lower: Lower{Color: "green", Size: 1.7}}
-	New().Post(ts.URL + case7_integration_send_json_struct).
+	New().Post(ts.URL + case7IntegrationSendJSONStruct).
 		SendMapString(`{"a":"a"}`).
 		SendStruct(myStyle).
 		End()
 
-	New().Post(ts.URL + case8_send_json_with_long_id_number).
+	New().Post(ts.URL + case8SendJSONWithLongIDNumber).
 		SendMapString(`{"id":123456789, "name":"nemo"}`).
 		End()
 
-	New().Post(ts.URL + case9_send_json_string_with_long_id_number_as_form_result).
+	New().Post(ts.URL + case9SendJSONStringWithLongIDNumberAsFormResult).
 		ContentType("form").
 		SendMapString(`{"id":123456789, "name":"nemo"}`).
 		End()
@@ -246,9 +246,9 @@ func TestPost(t *testing.T) {
 
 // testing for Patch method
 func TestPatch(t *testing.T) {
-	const case1_empty = "/"
-	const case2_set_header = "/set_header"
-	const case3_send_json = "/send_json"
+	const case1Empty = "/"
+	const case2SetHeader = "/set_header"
+	const case3SendJSON = "/send_json"
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// check method is PATCH before going to check other features
 		if r.Method != PATCH {
@@ -260,15 +260,15 @@ func TestPatch(t *testing.T) {
 		switch r.URL.Path {
 		default:
 			t.Errorf("No testing for this case yet : %q", r.URL.Path)
-		case case1_empty:
-			t.Logf("case %v ", case1_empty)
-		case case2_set_header:
-			t.Logf("case %v ", case2_set_header)
+		case case1Empty:
+			t.Logf("case %v ", case1Empty)
+		case case2SetHeader:
+			t.Logf("case %v ", case2SetHeader)
 			if r.Header.Get("API-Key") != "fookey" {
 				t.Errorf("Expected 'API-Key' == %q; got %q", "fookey", r.Header.Get("API-Key"))
 			}
-		case case3_send_json:
-			t.Logf("case %v ", case3_send_json)
+		case case3SendJSON:
+			t.Logf("case %v ", case3SendJSON)
 			defer r.Body.Close()
 			body, _ := ioutil.ReadAll(r.Body)
 			if string(body) != `{"query1":"test","query2":"test"}` {
@@ -279,14 +279,14 @@ func TestPatch(t *testing.T) {
 
 	defer ts.Close()
 
-	New().Patch(ts.URL + case1_empty).
+	New().Patch(ts.URL + case1Empty).
 		End()
 
-	New().Patch(ts.URL+case2_set_header).
+	New().Patch(ts.URL+case2SetHeader).
 		SetHeader("API-Key", "fookey").
 		End()
 
-	New().Patch(ts.URL + case3_send_json).
+	New().Patch(ts.URL + case3SendJSON).
 		SendMapString(`{"query1":"test"}`).
 		SendMapString(`{"query2":"test"}`).
 		End()
@@ -662,8 +662,8 @@ func TestBasicAuth(t *testing.T) {
 
 // testing for shared clients
 func TestClient(t *testing.T) {
-	const case1_empty = "/"
-	const case2_set_header = "/set_header"
+	const case1Empty = "/"
+	const case2SetHeader = "/set_header"
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// check method is GET before going to check other features
 		if r.Method != GET {
@@ -675,10 +675,10 @@ func TestClient(t *testing.T) {
 		switch r.URL.Path {
 		default:
 			t.Errorf("No testing for this case yet : %q", r.URL.Path)
-		case case1_empty:
-			t.Logf("case %v ", case1_empty)
-		case case2_set_header:
-			t.Logf("case %v ", case2_set_header)
+		case case1Empty:
+			t.Logf("case %v ", case1Empty)
+		case case2SetHeader:
+			t.Logf("case %v ", case2SetHeader)
 			if r.Header.Get("API-Key") != "fookey" {
 				t.Errorf("Expected 'API-Key' == %q; got %q", "fookey", r.Header.Get("API-Key"))
 			}
@@ -687,12 +687,12 @@ func TestClient(t *testing.T) {
 
 	defer ts.Close()
 
-	sa := New().Get(ts.URL + case1_empty)
+	sa := New().Get(ts.URL + case1Empty)
 	sa.End()
 
 	client := sa.Client
 
-	New().Get(ts.URL+case2_set_header).
+	New().Get(ts.URL+case2SetHeader).
 		SetHeader("API-Key", "fookey").
 		SetClient(client).
 		End()

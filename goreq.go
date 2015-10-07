@@ -62,9 +62,9 @@ type GoReq struct {
 // RetryConfig is used to config retry parameters
 type RetryConfig struct {
 	//Max retry count
-	RetryCount        int
+	RetryCount int
 	//Retry timeout
-	RetryTimeout      int
+	RetryTimeout int
 	// Retry only when received those http status
 	RetryOnHTTPStatus []int
 }
@@ -793,7 +793,7 @@ func (gr *GoReq) retryDo(req *http.Request, retryCount int) (resp Response, err 
 			resp = r
 			return
 		}
-		
+
 		resp, err = gr.retryDo(req, retryCount-1)
 	} else {
 		for _, s := range gr.retry.RetryOnHTTPStatus {
