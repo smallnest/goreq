@@ -1,11 +1,10 @@
-// goreq is a simplified http client.
+// Package goreq is a simplified http client.
 package goreq
 
 import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
-	_ "errors"
 	"io/ioutil"
 	"log"
 	"net"
@@ -21,7 +20,11 @@ import (
 	"golang.org/x/net/publicsuffix"
 )
 
+// Request represents an HTTP request received by a server
+// or to be sent by a client.
 type Request *http.Request
+
+// Response represents the response from an HTTP request.
 type Response *http.Response
 
 // HTTP methods we support
@@ -36,7 +39,7 @@ const (
 
 // A GoReq is a object storing all request data for client.
 type GoReq struct {
-	Url              string
+	URL              string
 	Method           string
 	Header           map[string]string
 	Data             map[string]interface{}
@@ -56,13 +59,17 @@ type GoReq struct {
 	bindResponseBody interface{}
 }
 
+// RetryConfig is used to config retry parameters
 type RetryConfig struct {
+	//Max retry count
 	RetryCount        int
+	//Retry timeout
 	RetryTimeout      int
-	RetryOnHttpStatus []int
+	// Retry only when received those http status
+	RetryOnHTTPStatus []int
 }
 
-// Used to create a new GoReq object.
+// New returns a new GoReq object.
 func New() *GoReq {
 	gr := &GoReq{
 		Data:             make(map[string]interface{}),
@@ -76,25 +83,25 @@ func New() *GoReq {
 		BasicAuth:        struct{ Username, Password string }{},
 		Debug:            false,
 		logger:           log.New(os.Stderr, "[goreq]", log.LstdFlags),
-		retry:            &RetryConfig{RetryCount: 0, RetryTimeout: 0, RetryOnHttpStatus: nil},
+		retry:            &RetryConfig{RetryCount: 0, RetryTimeout: 0, RetryOnHTTPStatus: nil},
 		bindResponseBody: nil,
 	}
 	return gr
 }
 
-// Enable the debug mode which logs request/response detail
+// SetDebug enables the debug mode which logs request/response detail
 func (gr *GoReq) SetDebug(enable bool) *GoReq {
 	gr.Debug = enable
 	return gr
 }
 
-// Set a Logger
+// SetLogger is used to set a Logger
 func (gr *GoReq) SetLogger(logger *log.Logger) *GoReq {
 	gr.logger = logger
 	return gr
 }
 
-// Set a shared http.Client
+// SetClient ise used to set a shared http.Client
 func (gr *GoReq) SetClient(client *http.Client) *GoReq {
 	gr.Client = client
 	return gr
@@ -110,9 +117,9 @@ func (gr *GoReq) setDefaultClient() *GoReq {
 	return gr
 }
 
-// Clear GoReq data for another new request only keep client and logger.
+// Reset is used to clear GoReq data for another new request only keep client and logger.
 func (gr *GoReq) Reset() *GoReq {
-	gr.Url = ""
+	gr.URL = ""
 	gr.Method = ""
 	gr.Header = make(map[string]string)
 	gr.Data = make(map[string]interface{})
@@ -122,60 +129,60 @@ func (gr *GoReq) Reset() *GoReq {
 	gr.RawBytesData = make([]byte, 0)
 	gr.Cookies = make([]*http.Cookie, 0)
 	gr.Errors = nil
-	gr.retry = &RetryConfig{RetryCount: 0, RetryTimeout: 0, RetryOnHttpStatus: nil}
+	gr.retry = &RetryConfig{RetryCount: 0, RetryTimeout: 0, RetryOnHTTPStatus: nil}
 	gr.bindResponseBody = nil
 	return gr
 }
 
-//Set GET HttpMethod with a url.
+// Get is used to set GET HttpMethod with a url.
 func (gr *GoReq) Get(targetUrl string) *GoReq {
 	gr.Method = GET
-	gr.Url = targetUrl
+	gr.URL = targetUrl
 	gr.Errors = nil
 	return gr
 }
 
-//Set POST HttpMethod with a url.
+// Post is used to set POST HttpMethod with a url.
 func (gr *GoReq) Post(targetUrl string) *GoReq {
 	gr.Method = POST
-	gr.Url = targetUrl
+	gr.URL = targetUrl
 	gr.Errors = nil
 	return gr
 }
 
-//Set HEAD HttpMethod with a url.
+// Head is used to set HEAD HttpMethod with a url.
 func (gr *GoReq) Head(targetUrl string) *GoReq {
 	gr.Method = HEAD
-	gr.Url = targetUrl
+	gr.URL = targetUrl
 	gr.Errors = nil
 	return gr
 }
 
-//Set PUT HttpMethod with a url.
+// Put is used to set PUT HttpMethod with a url.
 func (gr *GoReq) Put(targetUrl string) *GoReq {
 	gr.Method = PUT
-	gr.Url = targetUrl
+	gr.URL = targetUrl
 	gr.Errors = nil
 	return gr
 }
 
-//Set DELETE HttpMethod with a url.
+// Delete is used to set DELETE HttpMethod with a url.
 func (gr *GoReq) Delete(targetUrl string) *GoReq {
 	gr.Method = DELETE
-	gr.Url = targetUrl
+	gr.URL = targetUrl
 	gr.Errors = nil
 	return gr
 }
 
-//Set PATCH HttpMethod with a url.
+// Patch is used to set PATCH HttpMethod with a url.
 func (gr *GoReq) Patch(targetUrl string) *GoReq {
 	gr.Method = PATCH
-	gr.Url = targetUrl
+	gr.URL = targetUrl
 	gr.Errors = nil
 	return gr
 }
 
-// Set is used for setting header fields.
+// SetHeader is used for setting header fields.
 // Example. To set `Accept` as `application/json`
 //
 //    goreq.New().
@@ -187,8 +194,8 @@ func (gr *GoReq) SetHeader(param string, value string) *GoReq {
 	return gr
 }
 
-//Set headers with multiple fields.
-//it accepts structs or json strings:
+// SetHeaders is used to set headers with multiple fields.
+// it accepts structs or json strings:
 // for example:
 //    New().Get(ts.URL).
 //    SetHeaders(`{'Content-Type' = 'text/plain','X-Test-Tag'='test'}`).
@@ -206,7 +213,7 @@ func (gr *GoReq) SetHeader(param string, value string) *GoReq {
 func (gr *GoReq) SetHeaders(headers interface{}) *GoReq {
 	switch v := reflect.ValueOf(headers); v.Kind() {
 	case reflect.String:
-		gr.setJsonHeaders(v.String())
+		gr.setJSONHeaders(v.String())
 	case reflect.Struct:
 		gr.setStructHeaders(v.Interface())
 	default:
@@ -230,7 +237,7 @@ func (gr *GoReq) setStructHeaders(headers interface{}) *GoReq {
 	return gr
 }
 
-func (gr *GoReq) setJsonHeaders(headers string) *GoReq {
+func (gr *GoReq) setJSONHeaders(headers string) *GoReq {
 	var val map[string]string
 	if err := json.Unmarshal([]byte(headers), &val); err == nil {
 		for k, v := range val {
@@ -266,7 +273,7 @@ func (gr *GoReq) AddCookies(cookies []*http.Cookie) *GoReq {
 	return gr
 }
 
-//
+// ShortContentTypes defines some short content types.
 var ShortContentTypes = map[string]string{
 	"html":       "text/html",
 	"text":       "text/plain",
@@ -278,7 +285,7 @@ var ShortContentTypes = map[string]string{
 	"stream":     "application/octet-stream",
 }
 
-// Type is a convenience function to specify the data type to send instead of SetHeader("Content-Type", "......").
+// ContentType is a convenience function to specify the data type to send instead of SetHeader("Content-Type", "......").
 // For example, to send data as `application/x-www-form-urlencoded` :
 //
 //    goreq.New().
@@ -384,7 +391,7 @@ func (gr *GoReq) queryString(content string) *GoReq {
 	return gr
 }
 
-// As Go conventions accepts ; as a synonym for &. (https://github.com/golang/go/issues/2210)
+// Param accepts as Go conventions ; as a synonym for &. (https://github.com/golang/go/issues/2210)
 // Thus, Query won't accept ; in a query string if we provide something like fields=f1;f2;f3
 // This Param is then created as an alternative method to solve this.
 func (gr *GoReq) Param(key string, value string) *GoReq {
@@ -392,7 +399,7 @@ func (gr *GoReq) Param(key string, value string) *GoReq {
 	return gr
 }
 
-//Set timeout for connections.
+// Timeout is used to set timeout for connections.
 func (gr *GoReq) Timeout(timeout time.Duration) *GoReq {
 	gr.Transport.Dial = func(network, addr string) (net.Conn, error) {
 		conn, err := net.DialTimeout(network, addr, timeout)
@@ -406,7 +413,7 @@ func (gr *GoReq) Timeout(timeout time.Duration) *GoReq {
 	return gr
 }
 
-// Set TLSClientConfig for underling Transport.
+// TLSClientConfig is used to set TLSClientConfig for underling Transport.
 // One example is you can use it to disable security check (https):
 //
 //      goreq.New().TLSClientConfig(&tls.Config{ InsecureSkipVerify: true}).
@@ -446,7 +453,7 @@ func (gr *GoReq) Proxy(proxyUrl string) *GoReq {
 	return gr
 }
 
-// Set redirect policy.
+// RedirectPolicy is used to set redirect policy.
 func (gr *GoReq) RedirectPolicy(policy func(req Request, via []Request) error) *GoReq {
 	gr.CheckRedirect = func(r *http.Request, v []*http.Request) error {
 		vv := make([]Request, len(v))
@@ -670,17 +677,17 @@ func (gr *GoReq) EndBytes(callback ...func(response Response, body []byte, errs 
 		if gr.Header["Content-Type"] == "application/json" && len(gr.Data) > 0 { //json
 			contentJson, _ := json.Marshal(gr.Data)
 			contentReader := bytes.NewReader(contentJson)
-			req, err = http.NewRequest(gr.Method, gr.Url, contentReader)
+			req, err = http.NewRequest(gr.Method, gr.URL, contentReader)
 		} else if gr.Header["Content-Type"] == "application/x-www-form-urlencoded" { //form
 			formData := changeMapToURLValues(gr.Data)
-			req, err = http.NewRequest(gr.Method, gr.Url, strings.NewReader(formData.Encode()))
+			req, err = http.NewRequest(gr.Method, gr.URL, strings.NewReader(formData.Encode()))
 		} else if len(gr.RawBytesData) > 0 { //raw bytes
-			req, err = http.NewRequest(gr.Method, gr.Url, bytes.NewReader(gr.RawBytesData))
+			req, err = http.NewRequest(gr.Method, gr.URL, bytes.NewReader(gr.RawBytesData))
 		} else { //raw string
-			req, err = http.NewRequest(gr.Method, gr.Url, strings.NewReader(gr.RawStringData))
+			req, err = http.NewRequest(gr.Method, gr.URL, strings.NewReader(gr.RawStringData))
 		}
 	case GET, HEAD, DELETE:
-		req, err = http.NewRequest(gr.Method, gr.Url, nil)
+		req, err = http.NewRequest(gr.Method, gr.URL, nil)
 	}
 
 	initRequest(req, gr)
@@ -724,7 +731,7 @@ func (gr *GoReq) EndBytes(callback ...func(response Response, body []byte, errs 
 	return resp, body, nil
 }
 
-func initRequest(req  *http.Request, gr *GoReq) {
+func initRequest(req *http.Request, gr *GoReq) {
 	for k, v := range gr.Header {
 		req.Header.Set(k, v)
 	}
@@ -769,7 +776,7 @@ func initRequest(req  *http.Request, gr *GoReq) {
 //    End()
 //
 func (gr *GoReq) Retry(retryCount int, retryTimeout int, retryOnHttpStatus []int) *GoReq {
-	gr.retry = &RetryConfig{RetryCount: retryCount, RetryTimeout: retryTimeout, RetryOnHttpStatus: retryOnHttpStatus}
+	gr.retry = &RetryConfig{RetryCount: retryCount, RetryTimeout: retryTimeout, RetryOnHTTPStatus: retryOnHttpStatus}
 	return gr
 }
 
@@ -781,7 +788,7 @@ func (gr *GoReq) retryDo(req *http.Request, retryCount int) (resp Response, err 
 		return
 	}
 
-	if gr.retry.RetryOnHttpStatus == nil {
+	if gr.retry.RetryOnHTTPStatus == nil {
 		if r.StatusCode >= 200 {
 			resp = r
 			return
@@ -789,7 +796,7 @@ func (gr *GoReq) retryDo(req *http.Request, retryCount int) (resp Response, err 
 			resp, err = gr.retryDo(req, retryCount-1)
 		}
 	} else {
-		for _, s := range gr.retry.RetryOnHttpStatus {
+		for _, s := range gr.retry.RetryOnHTTPStatus {
 			if r.StatusCode == s {
 				if gr.retry.RetryTimeout > 0 {
 					time.Sleep(time.Duration(gr.retry.RetryTimeout) * time.Second)
