@@ -3,6 +3,7 @@ package goreq
 import (
 	"bytes"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -13,7 +14,6 @@ import (
 	"time"
 
 	"github.com/elazarl/goproxy"
-	"encoding/json"
 )
 
 // testing for Get method
@@ -44,11 +44,11 @@ func TestGet(t *testing.T) {
 	defer ts.Close()
 
 	New().Get(ts.URL + case1_empty).
-	End()
+		End()
 
 	New().Get(ts.URL+case2_set_header).
-	SetHeader("API-Key", "fookey").
-	End()
+		SetHeader("API-Key", "fookey").
+		End()
 }
 
 // testing that resp.Body is reusable
@@ -84,8 +84,8 @@ func TestParam(t *testing.T) {
 	defer ts.Close()
 
 	New().Get(ts.URL).
-	Param("code", paramCode).
-	Param("fields", paramFields)
+		Param("code", paramCode).
+		Param("fields", paramFields)
 }
 
 // testing for POST method
@@ -179,34 +179,34 @@ func TestPost(t *testing.T) {
 	defer ts.Close()
 
 	New().Post(ts.URL + case1_empty).
-	End()
+		End()
 
 	New().Post(ts.URL+case2_set_header).
-	SetHeader("API-Key", "fookey").
-	End()
+		SetHeader("API-Key", "fookey").
+		End()
 
 	New().Post(ts.URL + case3_send_json).
-	SendMapString(`{"query1":"test"}`).
-	SendMapString(`{"query2":"test"}`).
-	End()
+		SendMapString(`{"query1":"test"}`).
+		SendMapString(`{"query2":"test"}`).
+		End()
 
 	New().Post(ts.URL + case4_send_string).
-	SendMapString("query1=test").
-	SendMapString("query2=test").
-	End()
+		SendMapString("query1=test").
+		SendMapString("query2=test").
+		End()
 
 	New().Post(ts.URL + case5_integration_send_json_string).
-	SendMapString("query1=test").
-	SendMapString(`{"query2":"test"}`).
-	End()
+		SendMapString("query1=test").
+		SendMapString(`{"query2":"test"}`).
+		End()
 
 	/* TODO: More testing post for application/x-www-form-urlencoded
 	   post.query(json), post.query(string), post.send(json), post.send(string), post.query(both).send(both)
 	*/
 	New().Post(ts.URL + case6_set_query).
-	Query("query1=test").
-	Query("query2=test").
-	End()
+		Query("query1=test").
+		Query("query2=test").
+		End()
 	// TODO:
 	// 1. test normal struct
 	// 2. test 2nd layer nested struct
@@ -230,18 +230,18 @@ func TestPost(t *testing.T) {
 	}
 	myStyle := Style{Upper: Upper{Color: "red"}, Name: "Cindy", Lower: Lower{Color: "green", Size: 1.7}}
 	New().Post(ts.URL + case7_integration_send_json_struct).
-	SendMapString(`{"a":"a"}`).
-	SendStruct(myStyle).
-	End()
+		SendMapString(`{"a":"a"}`).
+		SendStruct(myStyle).
+		End()
 
 	New().Post(ts.URL + case8_send_json_with_long_id_number).
-	SendMapString(`{"id":123456789, "name":"nemo"}`).
-	End()
+		SendMapString(`{"id":123456789, "name":"nemo"}`).
+		End()
 
 	New().Post(ts.URL + case9_send_json_string_with_long_id_number_as_form_result).
-	ContentType("form").
-	SendMapString(`{"id":123456789, "name":"nemo"}`).
-	End()
+		ContentType("form").
+		SendMapString(`{"id":123456789, "name":"nemo"}`).
+		End()
 }
 
 // testing for Patch method
@@ -280,16 +280,16 @@ func TestPatch(t *testing.T) {
 	defer ts.Close()
 
 	New().Patch(ts.URL + case1_empty).
-	End()
+		End()
 
 	New().Patch(ts.URL+case2_set_header).
-	SetHeader("API-Key", "fookey").
-	End()
+		SetHeader("API-Key", "fookey").
+		End()
 
 	New().Patch(ts.URL + case3_send_json).
-	SendMapString(`{"query1":"test"}`).
-	SendMapString(`{"query2":"test"}`).
-	End()
+		SendMapString(`{"query1":"test"}`).
+		SendMapString(`{"query2":"test"}`).
+		End()
 }
 
 func checkQuery(t *testing.T, q map[string][]string, key string, want string) {
@@ -321,22 +321,22 @@ func TestSetHeader(t *testing.T) {
 	defer ts.Close()
 
 	New().Get(ts.URL).
-	SetHeader("Content-Type", "text/plain").
-	SetHeader("X-Test-Tag", "test").
-	End()
+		SetHeader("Content-Type", "text/plain").
+		SetHeader("X-Test-Tag", "test").
+		End()
 
 	New().Get(ts.URL).
-	SetHeaders(`{'Content-Type' = 'text/plain','X-Test-Tag'='test'}`).
-	End()
+		SetHeaders(`{'Content-Type' = 'text/plain','X-Test-Tag'='test'}`).
+		End()
 
 	headers := struct {
 		ContentType string `json:"Content-Type"`
-		XTestTag string `json:"X-Test-Tag"`
-	} {ContentType:"text/plain",XTestTag:"test"}
+		XTestTag    string `json:"X-Test-Tag"`
+	}{ContentType: "text/plain", XTestTag: "test"}
 
 	New().Get(ts.URL).
-	SetHeaders(headers).
-	End()
+		SetHeaders(headers).
+		End()
 }
 
 // TODO: more check on url query (all testcases)
@@ -352,9 +352,9 @@ func TestQueryFunc(t *testing.T) {
 	defer ts.Close()
 
 	New().Post(ts.URL).
-	Query("query1=test1").
-	Query("query2=test2").
-	End()
+		Query("query1=test1").
+		Query("query2=test2").
+		End()
 
 	qq := struct {
 		Query1 string `json:"query1"`
@@ -364,8 +364,8 @@ func TestQueryFunc(t *testing.T) {
 		Query2: "test2",
 	}
 	New().Post(ts.URL).
-	Query(qq).
-	End()
+		Query(qq).
+		End()
 }
 
 // TODO: more tests on redirect
@@ -382,8 +382,8 @@ func TestRedirectPolicyFunc(t *testing.T) {
 	defer ts.Close()
 
 	New().
-	Get(ts.URL).
-	RedirectPolicy(func(req Request, via []Request) error {
+		Get(ts.URL).
+		RedirectPolicy(func(req Request, via []Request) error {
 		redirectFuncGetCalled = true
 		return nil
 	}).End()
@@ -490,7 +490,6 @@ func TestEndBytes_sendRawString(t *testing.T) {
 	}
 }
 
-
 func TestProxyFunc(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "proxy passed")
@@ -522,7 +521,7 @@ func TestTimeoutFunc(t *testing.T) {
 		t.Errorf("Expected dial timeout error but get nothing")
 	}
 	if elapsedTime < 1000*time.Millisecond || elapsedTime > 1500*time.Millisecond {
-		t.Errorf("Expected timeout in between 1000 -> 1500 ms | but got ", elapsedTime)
+		t.Errorf("Expected timeout in between 1000 -> 1500 ms | but got %d", elapsedTime)
 	}
 	// 2st case, read/write timeout (Can dial to url but want to timeout because too long operation on the server)
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -537,7 +536,7 @@ func TestTimeoutFunc(t *testing.T) {
 		t.Errorf("Expected dial+read/write timeout | but get nothing")
 	}
 	if elapsedTime < 1000*time.Millisecond || elapsedTime > 1500*time.Millisecond {
-		t.Errorf("Expected timeout in between 1000 -> 1500 ms | but got ", elapsedTime)
+		t.Errorf("Expected timeout in between 1000 -> 1500 ms | but got %d", elapsedTime)
 	}
 	// 3rd case, testing reuse of same request
 	ts = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -551,7 +550,7 @@ func TestTimeoutFunc(t *testing.T) {
 		t.Errorf("Expected dial+read/write timeout | but get nothing")
 	}
 	if elapsedTime < 1000*time.Millisecond || elapsedTime > 1500*time.Millisecond {
-		t.Errorf("Expected timeout in between 1000 -> 1500 ms | but got ", elapsedTime)
+		t.Errorf("Expected timeout in between 1000 -> 1500 ms | but got %d", elapsedTime)
 	}
 
 }
@@ -587,8 +586,8 @@ func TestGetSetCookie(t *testing.T) {
 	defer ts.Close()
 
 	New().Get(ts.URL).
-	AddCookie(&http.Cookie{Name: "API-Cookie-Name", Value: "api-cookie-value"}).
-	End()
+		AddCookie(&http.Cookie{Name: "API-Cookie-Name", Value: "api-cookie-value"}).
+		End()
 }
 
 func TestGetSetCookies(t *testing.T) {
@@ -618,8 +617,8 @@ func TestGetSetCookies(t *testing.T) {
 	defer ts.Close()
 
 	New().Get(ts.URL).AddCookies([]*http.Cookie{
-		&http.Cookie{Name: "API-Cookie-Name1", Value: "api-cookie-value1"},
-		&http.Cookie{Name: "API-Cookie-Name2", Value: "api-cookie-value2"},
+		{Name: "API-Cookie-Name1", Value: "api-cookie-value1"},
+		{Name: "API-Cookie-Name2", Value: "api-cookie-value2"},
 	}).End()
 }
 
@@ -657,10 +656,9 @@ func TestBasicAuth(t *testing.T) {
 	}))
 	defer ts.Close()
 	New().Post(ts.URL).
-	SetBasicAuth("myusername", "mypassword").
-	End()
+		SetBasicAuth("myusername", "mypassword").
+		End()
 }
-
 
 // testing for shared clients
 func TestClient(t *testing.T) {
@@ -692,12 +690,12 @@ func TestClient(t *testing.T) {
 	sa := New().Get(ts.URL + case1_empty)
 	sa.End()
 
-	client := sa.Client;
+	client := sa.Client
 
 	New().Get(ts.URL+case2_set_header).
-	SetHeader("API-Key", "fookey").
-	SetClient(client).
-	End()
+		SetHeader("API-Key", "fookey").
+		SetClient(client).
+		End()
 }
 
 func TestRetry(t *testing.T) {
@@ -716,16 +714,16 @@ func TestRetry(t *testing.T) {
 	defer ts.Close()
 
 	_, _, err := New().Get(ts.URL).
-	Retry(3, 100, nil).
-	End()
+		Retry(3, 100, nil).
+		End()
 
 	if err != nil {
 		t.Error("failed to retry")
 	}
 
 	resp, _, err := New().Get("http://example.com/wrong-url").
-	Retry(3, 100, nil).
-	End()
+		Retry(3, 100, nil).
+		End()
 
 	if resp.StatusCode != 404 {
 		t.Error("Expected 404 Not Found")
@@ -745,8 +743,8 @@ func TestBindBody(t *testing.T) {
 
 	var friend Person
 	_, _, err := New().Get(ts.URL).
-	BindBody(&friend).
-	End()
+		BindBody(&friend).
+		End()
 
 	if err != nil {
 		t.Error("failed to get body")

@@ -36,46 +36,47 @@ const (
 
 // A GoReq is a object storing all request data for client.
 type GoReq struct {
-	Url        string
-	Method     string
-	Header     map[string]string
-	Data       map[string]interface{}
-	FormData   url.Values
-	QueryData  url.Values
-	RawStringData  string
-	RawBytesData []byte
-	Client     *http.Client
-	CheckRedirect func(r *http.Request, v []*http.Request) error
-	Transport  *http.Transport
-	Cookies    []*http.Cookie
-	Errors     []error
-	BasicAuth  struct{ Username, Password string }
-	Debug      bool
-	logger     *log.Logger
-	retry *RetryConfig
+	Url              string
+	Method           string
+	Header           map[string]string
+	Data             map[string]interface{}
+	FormData         url.Values
+	QueryData        url.Values
+	RawStringData    string
+	RawBytesData     []byte
+	Client           *http.Client
+	CheckRedirect    func(r *http.Request, v []*http.Request) error
+	Transport        *http.Transport
+	Cookies          []*http.Cookie
+	Errors           []error
+	BasicAuth        struct{ Username, Password string }
+	Debug            bool
+	logger           *log.Logger
+	retry            *RetryConfig
 	bindResponseBody interface{}
 }
 
 type RetryConfig struct {
-	RetryCount int
-	RetryTimeout int
+	RetryCount        int
+	RetryTimeout      int
 	RetryOnHttpStatus []int
 }
+
 // Used to create a new GoReq object.
 func New() *GoReq {
 	gr := &GoReq{
-		Data:       make(map[string]interface{}),
-		Header:     make(map[string]string),
-		FormData:   url.Values{},
-		QueryData:  url.Values{},
-		Client:     nil,
-		Transport:  &http.Transport{},
-		Cookies:    make([]*http.Cookie, 0),
-		Errors:     nil,
-		BasicAuth:  struct{ Username, Password string }{},
-		Debug:      false,
-		logger:     log.New(os.Stderr, "[goreq]", log.LstdFlags),
-		retry:      &RetryConfig{RetryCount:0, RetryTimeout:0, RetryOnHttpStatus:nil, },
+		Data:             make(map[string]interface{}),
+		Header:           make(map[string]string),
+		FormData:         url.Values{},
+		QueryData:        url.Values{},
+		Client:           nil,
+		Transport:        &http.Transport{},
+		Cookies:          make([]*http.Cookie, 0),
+		Errors:           nil,
+		BasicAuth:        struct{ Username, Password string }{},
+		Debug:            false,
+		logger:           log.New(os.Stderr, "[goreq]", log.LstdFlags),
+		retry:            &RetryConfig{RetryCount: 0, RetryTimeout: 0, RetryOnHttpStatus: nil},
 		bindResponseBody: nil,
 	}
 	return gr
@@ -94,7 +95,7 @@ func (gr *GoReq) SetLogger(logger *log.Logger) *GoReq {
 }
 
 // Set a shared http.Client
-func (gr *GoReq) SetClient(client  *http.Client) *GoReq {
+func (gr *GoReq) SetClient(client *http.Client) *GoReq {
 	gr.Client = client
 	return gr
 }
@@ -110,7 +111,7 @@ func (gr *GoReq) setDefaultClient() *GoReq {
 }
 
 // Clear GoReq data for another new request only keep client and logger.
-func (gr *GoReq) Reset() *GoReq{
+func (gr *GoReq) Reset() *GoReq {
 	gr.Url = ""
 	gr.Method = ""
 	gr.Header = make(map[string]string)
@@ -121,7 +122,7 @@ func (gr *GoReq) Reset() *GoReq{
 	gr.RawBytesData = make([]byte, 0)
 	gr.Cookies = make([]*http.Cookie, 0)
 	gr.Errors = nil
-	gr.retry =  &RetryConfig{RetryCount:0, RetryTimeout:0, RetryOnHttpStatus:nil, }
+	gr.retry = &RetryConfig{RetryCount: 0, RetryTimeout: 0, RetryOnHttpStatus: nil}
 	gr.bindResponseBody = nil
 	return gr
 }
@@ -297,7 +298,7 @@ var ShortContentTypes = map[string]string{
 //    "stream" as "application/octet-stream"
 //
 func (gr *GoReq) ContentType(typeStr string) *GoReq {
-	if (ShortContentTypes[typeStr] != "") {
+	if ShortContentTypes[typeStr] != "" {
 		typeStr = ShortContentTypes[typeStr]
 	}
 	gr.Header["Content-Type"] = typeStr
@@ -373,7 +374,7 @@ func (gr *GoReq) queryString(content string) *GoReq {
 		}
 	} else {
 		if queryVal, err := url.ParseQuery(content); err == nil {
-			for k, _ := range queryVal {
+			for k := range queryVal {
 				gr.QueryData.Add(k, queryVal.Get(k))
 			}
 		} else {
@@ -460,7 +461,6 @@ func (gr *GoReq) RedirectPolicy(policy func(req Request, via []Request) error) *
 	return gr
 }
 
-
 // SendStruct (similar to SendMapString) returns *GoReq's itself for any next chain and takes content interface{} as a parameter.
 // Its duty is to transfrom interface{} (implicitly always a struct) into s.Data (map[string]interface{}) which later changes into appropriate format such as json, form, text, etc. in the End() func.
 // You can pass a struct to it:
@@ -525,7 +525,7 @@ func (gr *GoReq) SendMapString(content string) *GoReq {
 			gr.Data[k] = v
 		}
 	} else if formVal, err2 := url.ParseQuery(content); err2 == nil {
-		for k, _ := range formVal {
+		for k := range formVal {
 			// make it array if already have key
 			if val, ok := gr.Data[k]; ok {
 				var strArray []string
@@ -557,7 +557,7 @@ func (gr *GoReq) SendMapString(content string) *GoReq {
 // SendRawString returns *GoReq's itself for any next chain and takes content string as a parameter.
 // Its duty is to transform String into gr.RawStringData and send raw string in request body.
 func (gr *GoReq) SendRawString(content string) *GoReq {
-	if 	gr.Header["Content-Type"] == "" {
+	if gr.Header["Content-Type"] == "" {
 		gr.Header["Content-Type"] = "text/plain"
 	}
 	gr.RawStringData = content
@@ -567,7 +567,7 @@ func (gr *GoReq) SendRawString(content string) *GoReq {
 // SendRawBytes returns *GoReq's itself for any next chain and takes content string as a parameter.
 // Its duty is to transform []byte into gr.RawBytesData and send raw bytes in request body.
 func (gr *GoReq) SendRawBytes(content []byte) *GoReq {
-	if 	gr.Header["Content-Type"] == "" {
+	if gr.Header["Content-Type"] == "" {
 		gr.Header["Content-Type"] = "application/octet-stream"
 	}
 	gr.RawBytesData = content
@@ -661,13 +661,13 @@ func (gr *GoReq) EndBytes(callback ...func(response Response, body []byte, errs 
 		return nil, nil, gr.Errors
 	}
 
-	if 	gr.Header["Content-Type"] == "" {
+	if gr.Header["Content-Type"] == "" {
 		gr.Header["Content-Type"] = "application/json"
 	}
 
 	switch gr.Method {
 	case POST, PUT, PATCH:
-		if gr.Header["Content-Type"] == "application/json" && len(gr.Data) > 0{ //json
+		if gr.Header["Content-Type"] == "application/json" && len(gr.Data) > 0 { //json
 			contentJson, _ := json.Marshal(gr.Data)
 			contentReader := bytes.NewReader(contentJson)
 			req, err = http.NewRequest(gr.Method, gr.Url, contentReader)
@@ -706,10 +706,10 @@ func (gr *GoReq) EndBytes(callback ...func(response Response, body []byte, errs 
 	}
 
 	//check client
-	if (gr.Client == nil) {
+	if gr.Client == nil {
 		gr.setDefaultClient()
 	}
-	if (gr.CheckRedirect != nil) {
+	if gr.CheckRedirect != nil {
 		gr.Client.CheckRedirect = gr.CheckRedirect
 	}
 
@@ -764,12 +764,12 @@ func (gr *GoReq) EndBytes(callback ...func(response Response, body []byte, errs 
 //    Retry(3, 100, nil).
 //    End()
 //
-func (gr *GoReq) Retry(retryCount int, retryTimeout int, retryOnHttpStatus []int) *GoReq{
-	gr.retry = &RetryConfig{RetryCount: retryCount, RetryTimeout:retryTimeout, RetryOnHttpStatus:retryOnHttpStatus}
+func (gr *GoReq) Retry(retryCount int, retryTimeout int, retryOnHttpStatus []int) *GoReq {
+	gr.retry = &RetryConfig{RetryCount: retryCount, RetryTimeout: retryTimeout, RetryOnHttpStatus: retryOnHttpStatus}
 	return gr
 }
 
-func (gr *GoReq) retryDo(req  *http.Request, retryCount int) (resp Response, err  error) {
+func (gr *GoReq) retryDo(req *http.Request, retryCount int) (resp Response, err error) {
 	r, err := gr.Client.Do(req)
 
 	if retryCount == 0 {

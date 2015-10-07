@@ -1,19 +1,19 @@
 package goreq_test
 
 import (
-//	"bytes"
-//	"encoding/base64"
+	//	"bytes"
+	//	"encoding/base64"
 	"fmt"
-//	"io/ioutil"
+	//	"io/ioutil"
 	"net/http"
-//	"net/http/httptest"
-//	"net/url"
-//	"strings"
-//	"testing"
-//	"time"
-//
-//	"github.com/elazarl/goproxy"
-//	"encoding/json"
+	//	"net/http/httptest"
+	//	"net/url"
+	//	"strings"
+	//	"testing"
+	//	"time"
+	//
+	//	"github.com/elazarl/goproxy"
+	//	"encoding/json"
 	"../goreq"
 	"strings"
 )
@@ -21,8 +21,8 @@ import (
 func ExampleGoReq_SetClient() {
 	client := &http.Client{}
 	resp, body, err := goreq.New().SetClient(client).
-	Get("http://httpbin.org/get").
-	End()
+		Get("http://httpbin.org/get").
+		End()
 
 	fmt.Println(resp.StatusCode == 200)
 	fmt.Println(len(err) == 0)
@@ -37,10 +37,10 @@ func ExampleGoReq_Reset() {
 
 	gr := goreq.New()
 	gr.Get("http://httpbin.org/get").
-	End()
+		End()
 
 	resp, body, err := gr.Reset().Get("http://httpbin.org/").
-	End()
+		End()
 
 	fmt.Println(resp.StatusCode == 200)
 	fmt.Println(len(err) == 0)
@@ -53,8 +53,8 @@ func ExampleGoReq_Reset() {
 
 func ExampleGoReq_Get() {
 	resp, body, err := goreq.New().
-	Get("http://httpbin.org/get").
-	End()
+		Get("http://httpbin.org/get").
+		End()
 
 	fmt.Println(resp.StatusCode == 200)
 	fmt.Println(len(err) == 0)
@@ -65,12 +65,11 @@ func ExampleGoReq_Get() {
 	// true
 }
 
-
 func ExampleGoReq_Post() {
 	resp, body, err := goreq.New().
-	Post("http://httpbin.org/post").
-	SendRawString("hello world").
-	End()
+		Post("http://httpbin.org/post").
+		SendRawString("hello world").
+		End()
 
 	fmt.Println(resp.StatusCode == 200)
 	fmt.Println(len(err) == 0)
@@ -83,9 +82,9 @@ func ExampleGoReq_Post() {
 
 func ExampleGoReq_Head() {
 	resp, body, err := goreq.New().
-	Head("http://httpbin.org/headers").
-	SendRawString("hello world").
-	End()
+		Head("http://httpbin.org/headers").
+		SendRawString("hello world").
+		End()
 
 	fmt.Println(resp.StatusCode == 200)
 	fmt.Println(len(err) == 0)
@@ -99,10 +98,10 @@ func ExampleGoReq_Head() {
 func ExampleGoReq_Put() {
 	q := `{"Name":"Jerry"}`
 	resp, body, err := goreq.New().
-	Put("http://httpbin.org/put").
-	ContentType("json").
-	SendMapString(q).
-	End()
+		Put("http://httpbin.org/put").
+		ContentType("json").
+		SendMapString(q).
+		End()
 
 	fmt.Println(resp.StatusCode == 200)
 	fmt.Println(len(err) == 0)
@@ -116,10 +115,10 @@ func ExampleGoReq_Put() {
 func ExampleGoReq_Delete() {
 	q := `{"Name":"Jerry"}`
 	resp, _, err := goreq.New().
-	Delete("http://httpbin.org/delete").
-	ContentType("json").
-	SendMapString(q).
-	End()
+		Delete("http://httpbin.org/delete").
+		ContentType("json").
+		SendMapString(q).
+		End()
 
 	fmt.Println(resp.StatusCode == 200)
 	fmt.Println(len(err) == 0)
@@ -131,10 +130,10 @@ func ExampleGoReq_Delete() {
 func ExampleGoReq_Patch() {
 	q := `{"Name":"Jerry"}`
 	resp, body, err := goreq.New().
-	Patch("http://httpbin.org/patch").
-	ContentType("json").
-	SendMapString(q).
-	End()
+		Patch("http://httpbin.org/patch").
+		ContentType("json").
+		SendMapString(q).
+		End()
 
 	fmt.Println(resp.StatusCode == 200)
 	fmt.Println(len(err) == 0)

@@ -19,7 +19,7 @@ $ go get github.com/smallnest/goreq
 
 ## Status
 [![Drone Build Status](https://drone.io/github.com/smallnest/goreq/status.png)](https://drone.io/github.com/smallnest/goreq/latest)
-
+[![Go Report Card](http://goreportcard.com/badge/smallnest/goreq)](http://goreportcard.com/report/smallnest/goreq)
 
 ## Usage
 ### why you should use goreq
