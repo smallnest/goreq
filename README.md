@@ -18,6 +18,7 @@ $ go get github.com/smallnest/goreq
 ```
 
 ## Status
+[![GoDoc](https://godoc.org/github.com/smallnest/goreq?status.png)](http://godoc.org/github.com/smallnest/goreq)
 [![Drone Build Status](https://drone.io/github.com/smallnest/goreq/status.png)](https://drone.io/github.com/smallnest/goreq/latest)
 [![Go Report Card](http://goreportcard.com/badge/smallnest/goreq)](http://goreportcard.com/report/smallnest/goreq)
 
