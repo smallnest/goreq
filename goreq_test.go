@@ -18,8 +18,8 @@ import (
 
 // testing for Get method
 func TestGet(t *testing.T) {
-	const case1_empty = "/"
-	const case2_set_header = "/set_header"
+	const case1Empty = "/"
+	const case2SetHeader = "/set_header"
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// check method is GET before going to check other features
 		if r.Method != GET {
@@ -31,10 +31,10 @@ func TestGet(t *testing.T) {
 		switch r.URL.Path {
 		default:
 			t.Errorf("No testing for this case yet : %q", r.URL.Path)
-		case case1_empty:
-			t.Logf("case %v ", case1_empty)
-		case case2_set_header:
-			t.Logf("case %v ", case2_set_header)
+		case case1Empty:
+			t.Logf("case %v ", case1Empty)
+		case case2SetHeader:
+			t.Logf("case %v ", case2SetHeader)
 			if r.Header.Get("API-Key") != "fookey" {
 				t.Errorf("Expected 'API-Key' == %q; got %q", "fookey", r.Header.Get("API-Key"))
 			}
