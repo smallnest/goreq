@@ -17,6 +17,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/moul/http2curl"
 	"golang.org/x/net/publicsuffix"
 )
 
@@ -54,6 +55,7 @@ type GoReq struct {
 	Errors           []error
 	BasicAuth        struct{ Username, Password string }
 	Debug            bool
+	CurlCommand      bool
 	logger           *log.Logger
 	retry            *RetryConfig
 	bindResponseBody interface{}
@@ -82,6 +84,7 @@ func New() *GoReq {
 		Errors:           nil,
 		BasicAuth:        struct{ Username, Password string }{},
 		Debug:            false,
+		CurlCommand:      false,
 		logger:           log.New(os.Stderr, "[goreq]", log.LstdFlags),
 		retry:            &RetryConfig{RetryCount: 0, RetryTimeout: 0, RetryOnHTTPStatus: nil},
 		bindResponseBody: nil,
@@ -93,6 +96,12 @@ func New() *GoReq {
 func (gr *GoReq) SetDebug(enable bool) *GoReq {
 	gr.Debug = enable
 	return gr
+}
+
+// SetCurlCommand enables the curlcommand mode which display a CURL command line
+func (s *GoReq) SetCurlCommand(enable bool) *GoReq {
+	s.CurlCommand = enable
+	return s
 }
 
 // SetLogger is used to set a Logger
@@ -700,6 +709,16 @@ func (gr *GoReq) EndBytes(callback ...func(response Response, body []byte, errs 
 			gr.logger.Printf("Error: %s", err.Error())
 		}
 		gr.logger.Printf("HTTP Request: %s", string(dump))
+	}
+
+	if gr.CurlCommand {
+		curl, err := http2curl.GetCurlCommand(req)
+		gr.logger.SetPrefix("[curl] ")
+		if err != nil {
+			gr.logger.Println("Error:", err)
+		} else {
+			gr.logger.Printf("CURL command line: %s", curl)
+		}
 	}
 
 	// Send request
