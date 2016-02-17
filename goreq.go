@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/moul/http2curl"
+	"golang.org/x/net/proxy"
 	"golang.org/x/net/publicsuffix"
 )
 
@@ -422,6 +423,27 @@ func (gr *GoReq) queryString(content string) *GoReq {
 // This Param is then created as an alternative method to solve this.
 func (gr *GoReq) Param(key string, value string) *GoReq {
 	gr.QueryData.Add(key, value)
+	return gr
+}
+
+// Socks5 sets SOCKS5 proxy. For exmaple:
+//
+// gr.Socks5()"tcp", PROXY_ADDR, nil, proxy.Direct)
+// gr.Socks5("tcp", "127.0.0.1:8080",
+//    &proxy.Auth{User:"username", Password:"password"},
+//    &net.Dialer {
+//        Timeout: 30 * time.Second,
+//        KeepAlive: 30 * time.Second,
+//    },
+//)
+//
+func (gr *GoReq) Socks5(network, addr string, auth *proxy.Auth, forward proxy.Dialer) *GoReq {
+	dialer, err := proxy.SOCKS5(network, addr, auth, forward)
+	if err != nil {
+		gr.Errors = append(gr.Errors, err)
+	} else {
+		gr.Transport.Dial = dialer.Dial
+	}
 	return gr
 }
 
