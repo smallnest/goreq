@@ -101,9 +101,9 @@ func (gr *GoReq) SetDebug(enable bool) *GoReq {
 }
 
 // SetCurlCommand enables the curlcommand mode which display a CURL command line
-func (s *GoReq) SetCurlCommand(enable bool) *GoReq {
-	s.CurlCommand = enable
-	return s
+func (gr *GoReq) SetCurlCommand(enable bool) *GoReq {
+	gr.CurlCommand = enable
+	return gr
 }
 
 // SetLogger is used to set a Logger
@@ -199,6 +199,7 @@ func (gr *GoReq) Patch(targetURL string) *GoReq {
 	return gr
 }
 
+// Options is used to set OPTIONS HttpMethod with a url.
 func (gr *GoReq) Options(targetUrl string) *GoReq {
 	gr.Reset()
 	gr.Method = OPTIONS
