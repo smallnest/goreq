@@ -200,10 +200,10 @@ func (gr *GoReq) Patch(targetURL string) *GoReq {
 }
 
 // Options is used to set OPTIONS HttpMethod with a url.
-func (gr *GoReq) Options(targetUrl string) *GoReq {
+func (gr *GoReq) Options(targetURL string) *GoReq {
 	gr.Reset()
 	gr.Method = OPTIONS
-	gr.URL = targetUrl
+	gr.URL = targetURL
 	gr.Errors = nil
 	return gr
 }
