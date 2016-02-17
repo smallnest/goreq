@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"log"
 	"net"
@@ -30,12 +31,13 @@ type Response *http.Response
 
 // HTTP methods we support
 const (
-	POST   = "POST"
-	GET    = "GET"
-	HEAD   = "HEAD"
-	PUT    = "PUT"
-	DELETE = "DELETE"
-	PATCH  = "PATCH"
+	POST    = "POST"
+	GET     = "GET"
+	HEAD    = "HEAD"
+	PUT     = "PUT"
+	DELETE  = "DELETE"
+	PATCH   = "PATCH"
+	OPTIONS = "OPTIONS"
 )
 
 // A GoReq is a object storing all request data for client.
@@ -145,6 +147,7 @@ func (gr *GoReq) Reset() *GoReq {
 
 // Get is used to set GET HttpMethod with a url.
 func (gr *GoReq) Get(targetURL string) *GoReq {
+	gr.Reset()
 	gr.Method = GET
 	gr.URL = targetURL
 	gr.Errors = nil
@@ -153,6 +156,7 @@ func (gr *GoReq) Get(targetURL string) *GoReq {
 
 // Post is used to set POST HttpMethod with a url.
 func (gr *GoReq) Post(targetURL string) *GoReq {
+	gr.Reset()
 	gr.Method = POST
 	gr.URL = targetURL
 	gr.Errors = nil
@@ -161,6 +165,7 @@ func (gr *GoReq) Post(targetURL string) *GoReq {
 
 // Head is used to set HEAD HttpMethod with a url.
 func (gr *GoReq) Head(targetURL string) *GoReq {
+	gr.Reset()
 	gr.Method = HEAD
 	gr.URL = targetURL
 	gr.Errors = nil
@@ -169,6 +174,7 @@ func (gr *GoReq) Head(targetURL string) *GoReq {
 
 // Put is used to set PUT HttpMethod with a url.
 func (gr *GoReq) Put(targetURL string) *GoReq {
+	gr.Reset()
 	gr.Method = PUT
 	gr.URL = targetURL
 	gr.Errors = nil
@@ -177,6 +183,7 @@ func (gr *GoReq) Put(targetURL string) *GoReq {
 
 // Delete is used to set DELETE HttpMethod with a url.
 func (gr *GoReq) Delete(targetURL string) *GoReq {
+	gr.Reset()
 	gr.Method = DELETE
 	gr.URL = targetURL
 	gr.Errors = nil
@@ -185,8 +192,17 @@ func (gr *GoReq) Delete(targetURL string) *GoReq {
 
 // Patch is used to set PATCH HttpMethod with a url.
 func (gr *GoReq) Patch(targetURL string) *GoReq {
+	gr.Reset()
 	gr.Method = PATCH
 	gr.URL = targetURL
+	gr.Errors = nil
+	return gr
+}
+
+func (gr *GoReq) Options(targetUrl string) *GoReq {
+	gr.Reset()
+	gr.Method = OPTIONS
+	gr.URL = targetUrl
 	gr.Errors = nil
 	return gr
 }
@@ -695,8 +711,12 @@ func (gr *GoReq) EndBytes(callback ...func(response Response, body []byte, errs 
 		} else { //raw string
 			req, err = http.NewRequest(gr.Method, gr.URL, strings.NewReader(gr.RawStringData))
 		}
-	case GET, HEAD, DELETE:
+	case GET, HEAD, DELETE, OPTIONS:
 		req, err = http.NewRequest(gr.Method, gr.URL, nil)
+
+	default:
+		gr.Errors = append(gr.Errors, errors.New("No method specified"))
+		return nil, nil, gr.Errors
 	}
 
 	initRequest(req, gr)
