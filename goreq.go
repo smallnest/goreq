@@ -1,4 +1,22 @@
 // Package goreq is a simplified http client.
+// Its initial codes are cloned from [HttpRequest](https://github.com/parnurzeal/gorequest). I have refactored the codes and make it more friendly to programmers.  And some bugs are fixed and new features are added.
+// goreq makes http thing more simple for you, using fluent styles to make http client more awesome. You can control headers, timeout, query parameters, binding response and others in one line:
+//
+// Before
+//
+// client := &http.Client{
+// 	 CheckRedirect: redirectPolicyFunc,
+// }
+// req, err := http.NewRequest("GET", "http://example.com", nil)
+// req.Header.Add("If-None-Match", `W/"wyzzy"`)
+// resp, err := client.Do(req)
+//
+// Using GoReq
+//
+// resp, body, errs := goreq.New().Get("http://example.com").
+//   RedirectPolicy(redirectPolicyFunc).
+//   SetHeader("If-None-Match", `W/"wyzzy"`).
+//   End()
 package goreq
 
 import (
@@ -8,6 +26,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"log"
+	"mime/multipart"
 	"net"
 	"net/http"
 	"net/http/cookiejar"
@@ -51,6 +70,8 @@ type GoReq struct {
 	QueryData        url.Values
 	RawStringData    string
 	RawBytesData     []byte
+	FilePath         string
+	FileParam        string
 	Client           *http.Client
 	CheckRedirect    func(r *http.Request, v []*http.Request) error
 	Transport        *http.Transport
@@ -139,6 +160,8 @@ func (gr *GoReq) Reset() *GoReq {
 	gr.QueryData = url.Values{}
 	gr.RawStringData = ""
 	gr.RawBytesData = make([]byte, 0)
+	gr.FilePath = ""
+	gr.FileParam = ""
 	gr.Cookies = make([]*http.Cookie, 0)
 	gr.Errors = nil
 	gr.retry = &RetryConfig{RetryCount: 0, RetryTimeout: 0, RetryOnHTTPStatus: nil}
@@ -629,6 +652,49 @@ func (gr *GoReq) SendRawBytes(content []byte) *GoReq {
 	return gr
 }
 
+// SendFile posts a file to server.
+func (gr *GoReq) SendFile(paramName, filePath string) *GoReq {
+	gr.FileParam = paramName
+	gr.FilePath = filePath
+	return gr
+}
+
+//copy from https://matt.aimonetti.net/posts/2013/07/01/golang-multipart-file-upload-example/
+func newfileUploadRequest(gr *GoReq, params map[string]string, paramName, filePath string) (*bytes.Buffer, error) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return nil, err
+	}
+	fileContents, err := ioutil.ReadAll(file)
+	if err != nil {
+		return nil, err
+	}
+	fi, err := file.Stat()
+	if err != nil {
+		return nil, err
+	}
+	file.Close()
+
+	body := new(bytes.Buffer)
+	writer := multipart.NewWriter(body)
+	part, err := writer.CreateFormFile(paramName, fi.Name())
+	if err != nil {
+		return nil, err
+	}
+	part.Write(fileContents)
+
+	for key, val := range params {
+		_ = writer.WriteField(key, val)
+	}
+	err = writer.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	gr.Header["Content-Type"] = writer.FormDataContentType()
+	return body, nil
+}
+
 func changeMapToURLValues(data map[string]interface{}) url.Values {
 	var newURLValues = url.Values{}
 	for k, v := range data {
@@ -648,6 +714,26 @@ func changeMapToURLValues(data map[string]interface{}) url.Values {
 		}
 	}
 	return newURLValues
+}
+
+func changeMapToMapString(data map[string]interface{}) map[string]string {
+	var m map[string]string
+
+	for k, v := range data {
+		switch val := v.(type) {
+		case string:
+			m[k] = val
+		case []string:
+			m[k] = strings.Join(val, ",")
+		// if a number, change to string
+		// json.Number used to protect against a wrong (for GoReq) default conversion
+		// which always converts number to float64.
+		// This type is caused by using Decoder.UseNumber()
+		case json.Number:
+			m[k] = string(val)
+		}
+	}
+	return m
 }
 
 // BindBody set bind object for response.
@@ -722,7 +808,10 @@ func (gr *GoReq) EndBytes(callback ...func(response Response, body []byte, errs 
 
 	switch gr.Method {
 	case POST, PUT, PATCH:
-		if gr.Header["Content-Type"] == "application/json" && len(gr.Data) > 0 { //json
+		if gr.FilePath != "" { //post a file
+			buf, _ := newfileUploadRequest(gr, changeMapToMapString(gr.Data), gr.FileParam, gr.FilePath)
+			req, err = http.NewRequest(gr.Method, gr.URL, buf)
+		} else if gr.Header["Content-Type"] == "application/json" && len(gr.Data) > 0 { //json
 			contentJSON, _ := json.Marshal(gr.Data)
 			contentReader := bytes.NewReader(contentJSON)
 			req, err = http.NewRequest(gr.Method, gr.URL, contentReader)
