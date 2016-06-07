@@ -82,10 +82,10 @@ func ExampleGoReq_Post() {
 }
 
 func ExampleGoReq_SendFile() {
-	resp, body, err := goreq.New().
+	_, _, _ = goreq.New().
 		Post("http://example.com/upload").
-		.SendFile("test", "./LICENSE")
-		.EndBytes()
+		SendFile("test", "LICENSE").
+		EndBytes()
 
 }
 func ExampleGoReq_Head() {
