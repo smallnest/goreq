@@ -14,8 +14,9 @@ import (
 	//
 	//	"github.com/elazarl/goproxy"
 	//	"encoding/json"
-	"../goreq"
 	"strings"
+
+	"../goreq"
 )
 
 func ExampleGoReq_SetClient() {
@@ -80,6 +81,13 @@ func ExampleGoReq_Post() {
 	// true
 }
 
+func ExampleGoReq_SendFile() {
+	resp, body, err := goreq.New().
+		Post("http://example.com/upload").
+		.SendFile("test", "./LICENSE")
+		.EndBytes()
+
+}
 func ExampleGoReq_Head() {
 	resp, body, err := goreq.New().
 		Head("http://httpbin.org/headers").

@@ -260,6 +260,27 @@ func TestPost(t *testing.T) {
 		End()
 }
 
+func TestSendFile(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != POST {
+			t.Errorf("Expected method %q; got %q", POST, r.Method)
+		}
+		if r.Header == nil {
+			t.Errorf("Expected non-nil request Header")
+		}
+
+		f, fh, err := r.FormFile("test")
+		if err != nil || f == nil {
+			t.Errorf("can't parse file/ %#v", err)
+		}
+		if fh.Filename != "LICENSE" {
+			t.Errorf("Expected filename %q; got %q", "LICENSE", fh.Filename)
+		}
+	}))
+
+	New().Post(ts.URL).SendFile("test", "./LICENSE").EndBytes()
+}
+
 // testing for Patch method
 func TestPatch(t *testing.T) {
 	const case1Empty = "/"
@@ -400,9 +421,9 @@ func TestRedirectPolicyFunc(t *testing.T) {
 	New().
 		Get(ts.URL).
 		RedirectPolicy(func(req Request, via []Request) error {
-		redirectFuncGetCalled = true
-		return nil
-	}).End()
+			redirectFuncGetCalled = true
+			return nil
+		}).End()
 	if !redirectSuccess {
 		t.Errorf("Expected reaching another redirect url not original one")
 	}
