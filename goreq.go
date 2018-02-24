@@ -171,7 +171,7 @@ func (gr *GoReq) Reset() *GoReq {
 
 // Get is used to set GET HttpMethod with a url.
 func (gr *GoReq) Get(targetURL string) *GoReq {
-	gr.Reset()
+	//gr.Reset()
 	gr.Method = GET
 	gr.URL = targetURL
 	gr.Errors = nil
@@ -180,7 +180,7 @@ func (gr *GoReq) Get(targetURL string) *GoReq {
 
 // Post is used to set POST HttpMethod with a url.
 func (gr *GoReq) Post(targetURL string) *GoReq {
-	gr.Reset()
+	//gr.Reset()
 	gr.Method = POST
 	gr.URL = targetURL
 	gr.Errors = nil
@@ -189,7 +189,7 @@ func (gr *GoReq) Post(targetURL string) *GoReq {
 
 // Head is used to set HEAD HttpMethod with a url.
 func (gr *GoReq) Head(targetURL string) *GoReq {
-	gr.Reset()
+	//gr.Reset()
 	gr.Method = HEAD
 	gr.URL = targetURL
 	gr.Errors = nil
@@ -198,7 +198,7 @@ func (gr *GoReq) Head(targetURL string) *GoReq {
 
 // Put is used to set PUT HttpMethod with a url.
 func (gr *GoReq) Put(targetURL string) *GoReq {
-	gr.Reset()
+	//gr.Reset()
 	gr.Method = PUT
 	gr.URL = targetURL
 	gr.Errors = nil
@@ -207,7 +207,7 @@ func (gr *GoReq) Put(targetURL string) *GoReq {
 
 // Delete is used to set DELETE HttpMethod with a url.
 func (gr *GoReq) Delete(targetURL string) *GoReq {
-	gr.Reset()
+	//gr.Reset()
 	gr.Method = DELETE
 	gr.URL = targetURL
 	gr.Errors = nil
@@ -216,7 +216,7 @@ func (gr *GoReq) Delete(targetURL string) *GoReq {
 
 // Patch is used to set PATCH HttpMethod with a url.
 func (gr *GoReq) Patch(targetURL string) *GoReq {
-	gr.Reset()
+	//gr.Reset()
 	gr.Method = PATCH
 	gr.URL = targetURL
 	gr.Errors = nil
@@ -225,7 +225,7 @@ func (gr *GoReq) Patch(targetURL string) *GoReq {
 
 // Options is used to set OPTIONS HttpMethod with a url.
 func (gr *GoReq) Options(targetURL string) *GoReq {
-	gr.Reset()
+	//gr.Reset()
 	gr.Method = OPTIONS
 	gr.URL = targetURL
 	gr.Errors = nil
