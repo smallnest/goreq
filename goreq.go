@@ -888,7 +888,7 @@ func (gr *GoReq) EndBytes(callback ...func(response Response, body []byte, errs 
 }
 
 func initRequest(req *http.Request, gr *GoReq) {
-	//绑定host
+	//bind host
 	req.Host = gr.Host
 	for k, v := range gr.Header {
 		req.Header.Set(k, v)
