@@ -63,6 +63,7 @@ const (
 // A GoReq is a object storing all request data for client.
 type GoReq struct {
 	URL              string
+	Host             string
 	Method           string
 	Header           map[string]string
 	Data             map[string]interface{}
@@ -403,6 +404,11 @@ func (gr *GoReq) Query(content interface{}) *GoReq {
 		gr.queryStruct(v.Interface())
 	default:
 	}
+	return gr
+}
+
+func (gr *GoReq) BindHost(host string) *GoReq {
+	gr.Host = host
 	return gr
 }
 
@@ -830,7 +836,6 @@ func (gr *GoReq) EndBytes(callback ...func(response Response, body []byte, errs 
 		gr.Errors = append(gr.Errors, errors.New("No method specified"))
 		return nil, nil, gr.Errors
 	}
-
 	initRequest(req, gr)
 
 	// Log details of this request
@@ -883,6 +888,8 @@ func (gr *GoReq) EndBytes(callback ...func(response Response, body []byte, errs 
 }
 
 func initRequest(req *http.Request, gr *GoReq) {
+	//bind host
+	req.Host = gr.Host
 	for k, v := range gr.Header {
 		req.Header.Set(k, v)
 	}
