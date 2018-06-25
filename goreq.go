@@ -808,12 +808,12 @@ func (gr *GoReq) EndBytes(callback ...func(response Response, body []byte, errs 
 		return nil, nil, gr.Errors
 	}
 
-	if gr.Method != GET && gr.Header["Content-Type"] == "" {
-		gr.Header["Content-Type"] = "application/json"
-	}
-
 	switch gr.Method {
 	case POST, PUT, PATCH:
+		if gr.Header["Content-Type"] == "" {
+			gr.Header["Content-Type"] = "application/json"
+		}
+
 		if gr.FilePath != "" { //post a file
 			buf, _ := newfileUploadRequest(gr, changeMapToMapString(gr.Data), gr.FileParam, gr.FilePath)
 			req, err = http.NewRequest(gr.Method, gr.URL, buf)
