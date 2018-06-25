@@ -808,7 +808,7 @@ func (gr *GoReq) EndBytes(callback ...func(response Response, body []byte, errs 
 		return nil, nil, gr.Errors
 	}
 
-	if gr.Header["Content-Type"] == "" {
+	if gr.Method != GET && gr.Header["Content-Type"] == "" {
 		gr.Header["Content-Type"] = "application/json"
 	}
 
