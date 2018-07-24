@@ -16,7 +16,7 @@ import (
 	//	"encoding/json"
 	"strings"
 
-	"../goreq"
+	"github.com/smallnest/goreq"
 )
 
 func ExampleGoReq_SetClient() {
